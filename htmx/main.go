@@ -20,9 +20,13 @@ func main() {
 	e := echo.New()
 	e.Renderer = &Template{templates: template.Must(template.ParseGlob("static/*.html"))}
 	e.Static("/static", "static")
+
+	handlers.SeedUsers()
 	// e.File("/", "static/index.html")
 
 	e.GET("/", handlers.Index)
+	e.GET("/register", handlers.RenderRegister)
+	e.GET("/login", handlers.RenderLogin)
 	e.POST("/register", handlers.RegisterUser)
 	e.POST("/login", handlers.Login)
 

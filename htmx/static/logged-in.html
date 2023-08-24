@@ -2,4 +2,7 @@
 <div>
   {{ .Username }}, you're in.
 </div>
+<button hx-get="/users" hx-swap="outerHTML">
+  Get other users
+</button>
 {{ end }}
