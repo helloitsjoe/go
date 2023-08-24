@@ -9,7 +9,10 @@ import (
 func main() {
 	e := echo.New()
 	e.Static("/static", "static")
-	e.GET("/", handlers.Index)
-	e.POST("/api", handlers.Update)
+	e.File("/", "static/index.html")
+
+	e.POST("/register", handlers.RegisterUser)
+	e.POST("/login", handlers.Login)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }

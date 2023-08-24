@@ -1,26 +1,24 @@
 <html>
   <head>
     <title>Go HTMX</title>
+    <link rel="stylesheet" href="./static/styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
   </head>
   <body>
-    <div id="message">
-      Hi
+    <div class="main">
+    <h1>Go HTMX</h1>
+    <form hx-post="/register" hx-swap="outerHTML" class="form">
+      <div>
+
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" />
+      </div>
+      <div>
+      <label for="password">Password</label>
+      <input type="password" id="name" name="name" />
+      </div>
+      <button type="submit" id="button">Submit</button>
+    </form>
     </div>
-    <button id="button">
-      Click me
-    </button>
-    <script>
-      const button = document.getElementById("button");
-      const message = document.getElementById("message");
-      button.onclick = function() {
-        button.innerText = "Loading...";
-        const body = JSON.stringify({ message: "Hello from HTMX!" });
-        fetch("/api", { method: "POST", headers: { "Content-Type": "application/json" }, body })
-          .then(response => response.json())
-          .then(data => {
-            message.innerText = data.message;
-          });
-      };
-    </script>
   </body>
 </html>
