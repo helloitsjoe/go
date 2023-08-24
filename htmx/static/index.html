@@ -1,3 +1,4 @@
+{{ define "index" }}
 <html>
   <head>
     <title>Go HTMX</title>
@@ -7,18 +8,8 @@
   <body>
     <div class="main">
     <h1>Go HTMX</h1>
-    <form hx-post="/register" hx-swap="outerHTML" class="form">
-      <div>
-
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" />
-      </div>
-      <div>
-      <label for="password">Password</label>
-      <input type="password" id="name" name="name" />
-      </div>
-      <button type="submit" id="button">Submit</button>
-    </form>
+    {{ template "register" }}
     </div>
   </body>
 </html>
+{{ end }}

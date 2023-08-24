@@ -2,30 +2,38 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
 
 type user struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `form:"username"`
+	Password string `form:"password"`
 }
 
 var users map[string]user
 
+// TODO: JWT
+
 func Index(c echo.Context) error {
-	t, err := template.ParseFiles("static/index.html")
-	if err != nil {
-		return err
-	}
-	return t.Execute(c.Response(), nil)
+	fmt.Println(c.Cookies())
+	// If auth cookie is valid, return logged in page (with cookie in header?)
+	return c.Render(http.StatusOK, "index", "")
 }
 
 func RegisterUser(c echo.Context) error {
-	fmt.Println("Body", c.Request().Body)
-	return c.HTML(http.StatusOK, "Registered")
+	u := user{}
+
+	// TODO: Hash password
+	users[u.Username] = u
+
+	if err := c.Bind(u); err != nil {
+		return c.String(http.StatusBadRequest, "bad request")
+	}
+
+	data := map[string]string{"Username": u.Username}
+	return c.Render(http.StatusOK, "logged-in", data)
 }
 
 func Login(c echo.Context) error {
