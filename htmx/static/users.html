@@ -1,0 +1,9 @@
+{{ define "users" }}
+<ul>
+  {{ range $i, $u := . }}
+  <li>
+    {{ $u.Username }}
+  </li>
+  {{ end }}
+</ul>
+{{ end }}

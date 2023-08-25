@@ -1,8 +1,11 @@
 {{ define "logged-in" }}
+<span id="num-users" hx-swap-oob="true">{{ len .Users }}</span>
+
 <div>
-  {{ .Username }}, you're in.
+  {{ .NewUser.Username }}, you're in.
 </div>
-<button hx-get="/users" hx-swap="outerHTML">
+<button hx-get="/users" hx-target="#users">
   Get other users
 </button>
+<div id="users"></div>
 {{ end }}

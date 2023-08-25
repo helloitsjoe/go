@@ -5,7 +5,8 @@
     <link rel="stylesheet" href="./static/styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.4"></script>
   </head>
-  <body hx-boost="true">
+  <body hx-boost="true" hx-trigger="newUser from:body">
+    {{ template "nav" . }}
     <div class="main">
     <h1>Go HTMX</h1>
     {{ template "register" . }}

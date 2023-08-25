@@ -16,6 +16,8 @@ type User struct {
 	Username string
 }
 
+type ctx map[string]interface{}
+
 var users = map[string]user{}
 var Users = map[string]User{}
 
@@ -33,7 +35,7 @@ func SeedUsers() {
 func Index(c echo.Context) error {
 	// fmt.Println(c.Cookies())
 	// If auth cookie is valid, return logged in page (with cookie in header?)
-	data := map[string]interface{}{"Register": "true"}
+	data := ctx{"Register": "true", "Users": Users}
 	return c.Render(http.StatusOK, "index", data)
 }
 
@@ -49,7 +51,11 @@ func RegisterUser(c echo.Context) error {
 	// TODO: Hash password
 	users[u.Username] = u
 
-	data := User{u.Username}
+	newUser := User{u.Username}
+	Users[u.Username] = newUser
+
+	data := ctx{"NewUser": newUser, "Users": Users}
+
 	return c.Render(http.StatusOK, "logged-in", data)
 }
 
@@ -59,9 +65,13 @@ func Login(c echo.Context) error {
 }
 
 func RenderRegister(c echo.Context) error {
-	return c.Render(http.StatusOK, "index", map[string]bool{"Register": true})
+	return c.Render(http.StatusOK, "index", ctx{"Register": true})
 }
 
 func RenderLogin(c echo.Context) error {
-	return c.Render(http.StatusOK, "index", map[string]bool{"Register": false})
+	return c.Render(http.StatusOK, "index", ctx{"Register": false})
+}
+
+func AllUsers(c echo.Context) error {
+	return c.Render(http.StatusOK, "users", Users)
 }

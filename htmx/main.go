@@ -27,6 +27,7 @@ func main() {
 	e.GET("/", handlers.Index)
 	e.GET("/register", handlers.RenderRegister)
 	e.GET("/login", handlers.RenderLogin)
+	e.GET("/users", handlers.AllUsers)
 	e.POST("/register", handlers.RegisterUser)
 	e.POST("/login", handlers.Login)
 
