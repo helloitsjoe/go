@@ -9,30 +9,31 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Template struct {
-	templates *template.Template
+type Template struct{}
+
+var tmps = map[string][]string{
+	"index.html": {"templates/index.html"},
+	"about.html": {"templates/about.html"},
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl, err := template.New("").ParseFiles(
-		"static/nav.html",
-		"static/users.html",
-		"static/logged-in.html",
-		"static/register.html",
-		"static/about.html",
-		"static/index.html",
-		"static/base.html",
-	)
-	if err != nil {
+	f := tmps[name]
+	if len(f) == 0 {
+		f = []string{}
+	}
+
+	// TODO: if no files, don't call parsefiles
+	if err := template.Must(template.Must(template.ParseGlob("templates/shared/*.html")).ParseFiles(f...)).ExecuteTemplate(w, "base", data); err != nil {
 		fmt.Println("Error", err)
 		return err
 	}
-	return tmpl.ExecuteTemplate(w, "base", data)
+	return nil
 }
 
 func main() {
 	e := echo.New()
-	e.Renderer = &Template{templates: template.Must(template.ParseGlob("static/*.html"))}
+	e.Renderer = &Template{}
+
 	e.Static("/static", "static")
 
 	handlers.SeedUsers()
