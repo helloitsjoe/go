@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"htmx/handlers"
 	"io"
@@ -13,7 +14,20 @@ type Template struct {
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
+	tmpl, err := template.New("").ParseFiles(
+		"static/nav.html",
+		"static/users.html",
+		"static/logged-in.html",
+		"static/register.html",
+		"static/about.html",
+		"static/index.html",
+		"static/base.html",
+	)
+	if err != nil {
+		fmt.Println("Error", err)
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "base", data)
 }
 
 func main() {
@@ -25,6 +39,7 @@ func main() {
 	// e.File("/", "static/index.html")
 
 	e.GET("/", handlers.Index)
+	e.GET("/about", handlers.About)
 	e.GET("/register", handlers.RenderRegister)
 	e.GET("/login", handlers.RenderLogin)
 	e.GET("/users", handlers.AllUsers)

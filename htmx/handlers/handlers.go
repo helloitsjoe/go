@@ -36,7 +36,7 @@ func Index(c echo.Context) error {
 	// fmt.Println(c.Cookies())
 	// If auth cookie is valid, return logged in page (with cookie in header?)
 	data := ctx{"Register": "true", "Users": Users}
-	return c.Render(http.StatusOK, "index", data)
+	return c.Render(http.StatusOK, "index.html", data)
 }
 
 func RegisterUser(c echo.Context) error {
@@ -54,9 +54,9 @@ func RegisterUser(c echo.Context) error {
 	newUser := User{u.Username}
 	Users[u.Username] = newUser
 
-	data := ctx{"NewUser": newUser, "Users": Users}
+	data := ctx{"User": newUser, "Users": Users}
 
-	return c.Render(http.StatusOK, "logged-in", data)
+	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
 func Login(c echo.Context) error {
@@ -65,13 +65,17 @@ func Login(c echo.Context) error {
 }
 
 func RenderRegister(c echo.Context) error {
-	return c.Render(http.StatusOK, "index", ctx{"Register": true})
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": true})
 }
 
 func RenderLogin(c echo.Context) error {
-	return c.Render(http.StatusOK, "index", ctx{"Register": false})
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false})
 }
 
 func AllUsers(c echo.Context) error {
-	return c.Render(http.StatusOK, "users", Users)
+	return c.Render(http.StatusOK, "users.html", Users)
+}
+
+func About(c echo.Context) error {
+	return c.Render(http.StatusOK, "about.html", ctx{"Users": Users})
 }
