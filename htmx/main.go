@@ -14,19 +14,25 @@ type Template struct{}
 var tmps = map[string][]string{
 	"index.html": {"templates/index.html"},
 	"about.html": {"templates/about.html"},
+	// "logged-in.html": {"templates/shared/logged-in.html"},
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	tmp := template.Must(template.ParseGlob("templates/shared/*.html"))
+
 	f := tmps[name]
-	if len(f) == 0 {
-		f = []string{}
+	if len(f) > 0 {
+		if err := template.Must(tmp.ParseFiles(f...)).ExecuteTemplate(w, "base", data); err != nil {
+			fmt.Println("Error", err)
+			return err
+		}
+	} else {
+		if err := tmp.ExecuteTemplate(w, name, data); err != nil {
+			fmt.Println("Error", err)
+			return err
+		}
 	}
 
-	// TODO: if no files, don't call parsefiles
-	if err := template.Must(template.Must(template.ParseGlob("templates/shared/*.html")).ParseFiles(f...)).ExecuteTemplate(w, "base", data); err != nil {
-		fmt.Println("Error", err)
-		return err
-	}
 	return nil
 }
 
