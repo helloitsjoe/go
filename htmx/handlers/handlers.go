@@ -65,11 +65,11 @@ func Login(c echo.Context) error {
 }
 
 func RenderRegister(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": true})
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": true, "Users": Users})
 }
 
 func RenderLogin(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false})
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": Users})
 }
 
 func AllUsers(c echo.Context) error {
