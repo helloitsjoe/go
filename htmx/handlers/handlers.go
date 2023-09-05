@@ -7,6 +7,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type ctx map[string]interface{}
+
+var users = map[string]user{}
+var Users = map[string]User{}
+
+// TODO: JWT
+// TODO: SQLite
+
+// TODO: Move these to DB
 type user struct {
 	Username string `form:"username"`
 	Password string `form:"password"`
@@ -16,13 +25,14 @@ type User struct {
 	Username string
 }
 
-type ctx map[string]interface{}
+type Handlers struct {
+	db string
+}
 
-var users = map[string]user{}
-var Users = map[string]User{}
+func New(db string) Handlers {
 
-// TODO: JWT
-// TODO: SQLite
+	return Handlers{db}
+}
 
 func SeedUsers() {
 	u := [3]string{"Alice", "Bob", "Carl"}
