@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Typecheck in editor is not working correctly
 func Register(e *echo.Echo) {
 	SeedUsers()
 

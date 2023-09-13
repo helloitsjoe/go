@@ -25,6 +25,13 @@ h1 {
   flex-direction: column;
 }
 
+.error {
+  padding: 1em;
+  background: red;
+  color: #fff;
+  margin: 1em 0;
+}
+
 nav {
   display: flex;
   gap: 1em;

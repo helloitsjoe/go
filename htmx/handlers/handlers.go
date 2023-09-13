@@ -58,6 +58,13 @@ func RegisterUser(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
+	if u.Username == "" || u.Password == "" {
+		fmt.Println("Name and password must be provided")
+		c.Response().Header().Set("HX-Retarget", "#error")
+		c.Response().Header().Set("HX-Reswap", "innerHTML")
+		return c.Render(http.StatusOK, "error.html", ctx{"Error": "Name and password must be provided"})
+	}
+
 	// TODO: Hash password
 	users[u.Username] = u
 
