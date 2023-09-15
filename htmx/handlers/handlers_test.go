@@ -25,6 +25,31 @@ func TestIndex(t *testing.T) {
 	assert.Contains(t, r, "form hx-post=\"/register\" hx-swap=\"outerHTML\"")
 }
 
+func TestGetUsersHtmx(t *testing.T) {
+	e := router.New("../")
+	Register(e)
+	req := httptest.NewRequest(echo.GET, "/users", strings.NewReader(""))
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, AllUsers(c))
+	r := rec.Body.String()
+	assert.Contains(t, r, "Alice")
+	assert.Contains(t, r, "Bob")
+	assert.Contains(t, r, "Carl")
+}
+
+func TestGetUsersJson(t *testing.T) {
+	e := router.New("../")
+	Register(e)
+	req := httptest.NewRequest(echo.GET, "/users?format=json", strings.NewReader(""))
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, AllUsers(c))
+	r := rec.Body.String()
+	assert.Equal(t, r, `{"Alice":{"Username":"Alice"},"Bob":{"Username":"Bob"},"Carl":{"Username":"Carl"}}
+`)
+}
+
 func TestRegisterUserNoInput(t *testing.T) {
 	e := router.New("../")
 	Register(e)

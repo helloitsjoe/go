@@ -90,6 +90,10 @@ func RenderLogin(c echo.Context) error {
 }
 
 func AllUsers(c echo.Context) error {
+	if c.QueryParam("format") == "json" {
+		return c.JSON(http.StatusOK, Users)
+	}
+
 	return c.Render(http.StatusOK, "users.html", Users)
 }
 

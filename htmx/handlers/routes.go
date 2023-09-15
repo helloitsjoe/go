@@ -15,5 +15,4 @@ func Register(e *echo.Echo) {
 	e.GET("/users", AllUsers)
 	e.POST("/register", RegisterUser)
 	e.POST("/login", Login)
-
 }
