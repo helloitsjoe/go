@@ -43,8 +43,12 @@ func SeedUsers() {
 }
 
 func Index(c echo.Context) error {
+	if c.Get("user") != nil {
+		data := ctx{"Users": Users, "User": Users[c.Get("user").(string)]}
+		return c.Render(http.StatusOK, "index.html", data)
+	}
 	// fmt.Println(c.Cookies())
-	// If auth cookie is valid, return logged in page (with cookie in header?)
+	// If auth cookie is valid, return logged in page
 	data := ctx{"Register": "true", "Users": Users}
 	return c.Render(http.StatusOK, "index.html", data)
 }
@@ -79,6 +83,10 @@ func RegisterUser(c echo.Context) error {
 func Login(c echo.Context) error {
 	fmt.Println("Body", c.Request().Body)
 	return c.HTML(http.StatusOK, "Logged in")
+}
+
+func LoggedIn(c echo.Context) error {
+	return c.Render(http.StatusOK, "logged-in.html", ctx{"Users": Users})
 }
 
 func RenderRegister(c echo.Context) error {

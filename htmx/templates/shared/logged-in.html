@@ -2,6 +2,7 @@
 
 <span id="logged-in-as" hx-swap-oob="true">Logged in as {{ .User.Username }}</span>
 
+{{ define "logged-in" }}
 <div>
   {{ .User.Username }}, you're in.
 </div>
@@ -9,3 +10,4 @@
   Get other users
 </button>
 <div id="users"></div>
+{{ end }}

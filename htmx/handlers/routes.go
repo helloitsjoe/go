@@ -2,13 +2,15 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
+
+	"htmx/middleware"
 )
 
 // Typecheck in editor is not working correctly
 func Register(e *echo.Echo) {
 	SeedUsers()
 
-	e.GET("/", Index)
+	e.GET("/", middleware.Auth(Index))
 	e.GET("/about", About)
 	e.GET("/register", RenderRegister)
 	e.GET("/login", RenderLogin)
