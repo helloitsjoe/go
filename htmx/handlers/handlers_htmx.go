@@ -139,7 +139,7 @@ func Login(c echo.Context) error {
 	fmt.Println(data)
 
 	// TODO: Return better response, clear error message
-	return c.HTML(http.StatusOK, "Logged in")
+	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
 func LoggedIn(c echo.Context) error {
