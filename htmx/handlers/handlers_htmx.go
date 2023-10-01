@@ -34,7 +34,6 @@ type Handlers struct {
 var uniqueId = 0
 
 func New(db string) Handlers {
-
 	return Handlers{db}
 }
 
@@ -42,8 +41,9 @@ func SeedUsers() {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
 	for _, name := range u {
+		uniqueId++
 		Users[name] = User{name, uniqueId}
-		users[name] = user{name, "password"}
+		users[name] = user{name, "bar"}
 	}
 }
 

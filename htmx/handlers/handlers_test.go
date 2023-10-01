@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"htmx/router"
 	"net/http/httptest"
@@ -45,9 +46,21 @@ func TestGetUsersJson(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	assert.NoError(t, AllUsers(c))
-	r := rec.Body.String()
-	assert.Equal(t, r, `{"Alice":{"Username":"Alice"},"Bob":{"Username":"Bob"},"Carl":{"Username":"Carl"}}
-`)
+	r := rec.Body.Bytes()
+	users := map[string]User{}
+	err := json.Unmarshal(r, &users)
+	assert.Nil(t, err)
+
+	alice, bob, carl := users["Alice"], users["Bob"], users["Carl"]
+
+	assert.Equal(t, alice.Username, "Alice")
+	assert.Equal(t, bob.Username, "Bob")
+	assert.Equal(t, carl.Username, "Carl")
+
+	// Bit annoying way to check that the Ids are unique
+	assert.NotEqual(t, alice.Id, bob.Id)
+	assert.NotEqual(t, bob.Id, carl.Id)
+	assert.NotEqual(t, alice.Id, carl.Id)
 }
 
 func TestRegisterUserNoInput(t *testing.T) {
@@ -82,3 +95,21 @@ func TestRegisterUserValid(t *testing.T) {
 	assert.Contains(t, r, "<span id=\"logged-in-as\" hx-swap-oob=\"true\">Logged in as New User</span>")
 	assert.Contains(t, r, "New User, you're in.")
 }
+
+// func TestLogin(t *testing.T) {
+// 	e := router.New("../")
+// 	Register(e)
+// 	form := url.Values{}
+// 	form.Add("username", "Alice")
+// 	form.Add("password", "123")
+// 	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
+// 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+// 	rec := httptest.NewRecorder()
+// 	c := e.NewContext(req, rec)
+// 	assert.NoError(t, RegisterUser(c))
+// 	r := rec.Body.String()
+// 	fmt.Println(r)
+// 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
+// 	assert.Contains(t, r, "<span id=\"logged-in-as\" hx-swap-oob=\"true\">Logged in as New User</span>")
+// 	assert.Contains(t, r, "New User, you're in.")
+// }
