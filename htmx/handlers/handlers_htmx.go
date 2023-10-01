@@ -126,6 +126,7 @@ func Login(c echo.Context) error {
 	}
 
 	user := users[u.Username]
+
 	if !checkPasswordHash(user.Password, hashed) {
 		fmt.Println("Incorrect password")
 		c.Response().Header().Set("HX-Retarget", "#error")

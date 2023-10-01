@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"htmx/router"
 	"net/http/httptest"
 	"net/url"
@@ -71,7 +70,6 @@ func TestRegisterUserNoInput(t *testing.T) {
 	c := e.NewContext(req, rec)
 	assert.NoError(t, RegisterUser(c))
 	r := rec.Body.String()
-	fmt.Println(r)
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
 	assert.Contains(t, r, "div class=\"error\"")
@@ -90,26 +88,44 @@ func TestRegisterUserValid(t *testing.T) {
 	c := e.NewContext(req, rec)
 	assert.NoError(t, RegisterUser(c))
 	r := rec.Body.String()
-	fmt.Println(r)
 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
 	assert.Contains(t, r, "<span id=\"logged-in-as\" hx-swap-oob=\"true\">Logged in as New User</span>")
 	assert.Contains(t, r, "New User, you're in.")
 }
 
-// func TestLogin(t *testing.T) {
-// 	e := router.New("../")
-// 	Register(e)
-// 	form := url.Values{}
-// 	form.Add("username", "Alice")
-// 	form.Add("password", "123")
-// 	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
-// 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	assert.NoError(t, RegisterUser(c))
-// 	r := rec.Body.String()
-// 	fmt.Println(r)
-// 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
-// 	assert.Contains(t, r, "<span id=\"logged-in-as\" hx-swap-oob=\"true\">Logged in as New User</span>")
-// 	assert.Contains(t, r, "New User, you're in.")
-// }
+func TestLogin(t *testing.T) {
+	e := router.New("../")
+	Register(e)
+	form := url.Values{}
+	form.Add("username", "Alice")
+	form.Add("password", "bar")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, Login(c))
+	r := rec.Body.String()
+	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
+	assert.Contains(t, r, "<span id=\"logged-in-as\" hx-swap-oob=\"true\">Logged in as Alice</span>")
+	// Clear error on a successful login
+	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
+	assert.Contains(t, r, "Alice, you're in.")
+}
+
+func TestLoginError(t *testing.T) {
+	e := router.New("../")
+	Register(e)
+	form := url.Values{}
+	form.Add("username", "Alice")
+	form.Add("password", "wrong-password")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, Login(c))
+	r := rec.Body.String()
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "Incorrect password")
+}

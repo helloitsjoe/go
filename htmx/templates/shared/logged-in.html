@@ -2,6 +2,8 @@
 
 <span id="logged-in-as" hx-swap-oob="true">Logged in as {{ .User.Username }}</span>
 
+<div id="error" hx-swap-oob="true"></div>
+
 {{ define "logged-in" }}
 <div>
   {{ .User.Username }}, you're in.
