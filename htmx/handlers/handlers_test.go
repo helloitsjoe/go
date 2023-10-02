@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"htmx/router"
+	"htmx/user"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -46,7 +47,7 @@ func TestGetUsersJson(t *testing.T) {
 	c := e.NewContext(req, rec)
 	assert.NoError(t, AllUsers(c))
 	r := rec.Body.Bytes()
-	users := map[string]User{}
+	users := map[string]user.User{}
 	err := json.Unmarshal(r, &users)
 	assert.Nil(t, err)
 

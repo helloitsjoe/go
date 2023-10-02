@@ -4,11 +4,12 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"htmx/middleware"
+	"htmx/user"
 )
 
 // Typecheck in editor is not working correctly
 func Register(e *echo.Echo) {
-	SeedUsers()
+	user.SeedUsers()
 
 	e.GET("/", middleware.Auth(Index))
 	e.GET("/about", About)
