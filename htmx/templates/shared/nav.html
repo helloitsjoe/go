@@ -2,7 +2,14 @@
 <nav>
   <a href="/">Home</a>
   <a href="/about">About</a>
+  {{ if .User.Username }}
+  <span id="logged-in-as" hx-swap-oob="true">
+    Logged in as {{ .User.Username }}
+    <button hx-post="/logout" class="text-btn">Log out</button>
+  </span>
+  {{ else }}
   <span id="logged-in-as"></span>
+  {{ end }}
   <div>
   Number of users: <span id="num-users">{{ len .Users }}</span>
   </div>

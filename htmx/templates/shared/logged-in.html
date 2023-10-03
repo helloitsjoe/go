@@ -1,11 +1,13 @@
 <span id="num-users" hx-swap-oob="true">{{ len .Users }}</span>
 
-<span id="logged-in-as" hx-swap-oob="true">Logged in as {{ .User.Username }}</span>
+<span id="logged-in-as" hx-swap-oob="true">Logged in as {{ .User.Username }}
+  <button hx-post="/logout" class="text-btn">Log out</button>
+</span>
 
 <div id="error" hx-swap-oob="true"></div>
 
 {{ define "logged-in" }}
-<div>
+<div class="main">
   {{ .User.Username }}, you're in.
 </div>
 <button hx-get="/users" hx-target="#users">

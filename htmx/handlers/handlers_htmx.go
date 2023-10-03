@@ -18,19 +18,32 @@ func New(db string) Handlers {
 	return Handlers{db}
 }
 
+func checkLoggedIn(username string, usernameExists bool) (*user.User, bool) {
+	if usernameExists {
+		validUser, userExists := user.Users[username]
+
+		if userExists {
+			return &validUser, true
+		}
+	}
+
+	return nil, false
+}
+
 func Index(c echo.Context) error {
-	if c.Get("user") != nil {
-		data := ctx{"Users": user.Users, "User": user.Users[c.Get("user").(string)]}
+	username, ok := c.Get("username").(string)
+	loggedInUser, exists := checkLoggedIn(username, ok)
+
+	if exists {
+		data := ctx{"Users": user.Users, "User": loggedInUser}
 		return c.Render(http.StatusOK, "index.html", data)
 	}
-	// fmt.Println(c.Cookies())
-	// If auth cookie is valid, return logged in page
+
 	data := ctx{"Register": "true", "Users": user.Users}
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
 func RegisterUser(c echo.Context) error {
-	fmt.Println(c.Request().FormValue("password"))
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
@@ -46,6 +59,8 @@ func RegisterUser(c echo.Context) error {
 		c.Response().Header().Set("HX-Reswap", "innerHTML")
 		return c.Render(http.StatusOK, "error.html", ctx{"Error": err.Error()})
 	}
+
+	c.SetCookie(&http.Cookie{Name: "username", Value: newUser.Username, HttpOnly: true, MaxAge: 10 * 60})
 
 	data := ctx{"User": newUser, "Users": user.Users}
 
@@ -72,7 +87,8 @@ func Login(c echo.Context) error {
 	}
 
 	data := ctx{"User": loggedInUser, "Users": user.Users}
-	fmt.Println(data)
+
+	c.SetCookie(&http.Cookie{Name: "username", Value: loggedInUser.Username, HttpOnly: true, MaxAge: 10 * 60})
 
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
@@ -86,6 +102,13 @@ func RenderRegister(c echo.Context) error {
 }
 
 func RenderLogin(c echo.Context) error {
+	authUsername, ok := c.Get("username").(string)
+	_, exists := checkLoggedIn(authUsername, ok)
+
+	if exists {
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
+	}
+
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})
 }
 
@@ -99,4 +122,11 @@ func AllUsers(c echo.Context) error {
 
 func About(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", ctx{"Users": user.Users})
+}
+
+// TODO: Test login/logout
+func Logout(c echo.Context) error {
+	c.SetCookie(&http.Cookie{Name: "username", Value: "", HttpOnly: true, MaxAge: 0})
+	c.Response().Header().Set("HX-Redirect", "/")
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})
 }

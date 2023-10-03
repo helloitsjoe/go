@@ -11,16 +11,16 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		fmt.Println("Auth middleware", c.Cookies())
 
-		user, err := c.Cookie("userid")
+		username, err := c.Cookie("username")
 
 		if err != nil && !strings.Contains(err.Error(), "named cookie not present") {
 			fmt.Println(err)
 			return err
 		}
 
-		if user != nil {
-			fmt.Println("user", user.Value)
-			c.Set("user", "Alice")
+		if username != nil {
+			fmt.Println("username", username.Value)
+			c.Set("username", username.Value)
 		}
 
 		return next(c)
