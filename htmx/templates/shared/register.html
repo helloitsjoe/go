@@ -24,5 +24,10 @@
     <label for="password">Password</label>
     <input type="password" id="password" name="password" required />
   </div>
-  <button type="submit" id="button" class="full-width" data-loading-disable>Submit</button>
+  <input type="number" name="sleep" value="1" hidden />
+  <button type="submit" id="button" class="full-width" data-loading-disable>
+    <span data-loading-class="hidden">Submit</span>
+    <span data-loading-class="visible" class="hidden">Please wait...</span>
+  </button>
 {{ end }}
+

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"htmx/user"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -31,6 +32,16 @@ func checkLoggedIn(username string, usernameExists bool) (*user.User, bool) {
 	return nil, false
 }
 
+func getSleep(reqSleep string) time.Duration {
+	sleep := 0
+	if reqSleep, err := strconv.Atoi(reqSleep); err == nil {
+		sleep = reqSleep
+	} else {
+		fmt.Println("Error parsing sleep-seconds:", err)
+	}
+	return time.Duration(sleep)
+}
+
 func Index(c echo.Context) error {
 	username, ok := c.Get("username").(string)
 	loggedInUser, exists := checkLoggedIn(username, ok)
@@ -45,7 +56,8 @@ func Index(c echo.Context) error {
 }
 
 func RegisterUser(c echo.Context) error {
-	time.Sleep(1 * time.Second)
+	sleep := getSleep(c.Request().FormValue("sleep"))
+	time.Sleep(sleep * time.Second)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
@@ -70,7 +82,8 @@ func RegisterUser(c echo.Context) error {
 }
 
 func Login(c echo.Context) error {
-	time.Sleep(1 * time.Second)
+	sleep := getSleep(c.Request().FormValue("sleep"))
+	time.Sleep(time.Duration(sleep) * time.Second)
 	fmt.Println("Body", c.Request().Body)
 	fmt.Println("Password", c.Request().FormValue("password"))
 	username := c.Request().FormValue("username")
@@ -127,7 +140,6 @@ func About(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", ctx{"Users": user.Users})
 }
 
-// TODO: Test login/logout
 func Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{Name: "username", Value: "", HttpOnly: true, MaxAge: 0})
 	c.Response().Header().Set("HX-Redirect", "/")
