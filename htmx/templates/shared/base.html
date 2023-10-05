@@ -4,8 +4,9 @@
     <title>Go HTMX</title>
     <link rel="stylesheet" href="./static/styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/loading-states.js"></script>
   </head>
-  <body hx-boost="true" hx-trigger="newUser from:body">
+  <body hx-boost="true" hx-trigger="newUser from:body" hx-ext="loading-states">
     {{ template "nav" . }}
     <main class="main">
       <h1>Go HTMX</h1>

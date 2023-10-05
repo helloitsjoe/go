@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"htmx/user"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -44,6 +45,7 @@ func Index(c echo.Context) error {
 }
 
 func RegisterUser(c echo.Context) error {
+	time.Sleep(1 * time.Second)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
@@ -68,6 +70,7 @@ func RegisterUser(c echo.Context) error {
 }
 
 func Login(c echo.Context) error {
+	time.Sleep(1 * time.Second)
 	fmt.Println("Body", c.Request().Body)
 	fmt.Println("Password", c.Request().FormValue("password"))
 	username := c.Request().FormValue("username")
