@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,13 +19,12 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-var users = map[string]user{}
-var Users = map[string]User{}
+var users = map[string]*user{}
+var Users = map[string]*User{}
 
 // TODO: JWT
 // TODO: SQLite
 
-// TODO: Move these to DB
 type user struct {
 	Username string `form:"username"`
 	Password string `form:"password"`
@@ -33,25 +33,33 @@ type user struct {
 type User struct {
 	Username string
 	Id       int
+	UUID     uuid.UUID
 }
 
 var uniqueId = 0
+
+func NewUser(username string) *User {
+	uniqueId++
+	u := &User{}
+	u.Username = username
+	u.Id = uniqueId
+	return u
+}
 
 func SeedUsers() {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
 	for _, name := range u {
-		uniqueId++
-		Users[name] = User{name, uniqueId}
-		users[name] = user{name, "bar"}
+		Users[name] = NewUser(name)
+		users[name] = &user{name, "bar"}
 	}
 }
 
 func AddUser(c echo.Context, name, password string) (*User, error) {
-	u := user{}
+	u := &user{}
 
 	// TODO: Extract Context out of this function
-	if err := c.Bind(&u); err != nil {
+	if err := c.Bind(u); err != nil {
 		fmt.Println(err)
 		return nil, errors.New("Bad request")
 	}
@@ -70,17 +78,17 @@ func AddUser(c echo.Context, name, password string) (*User, error) {
 	u.Password = hashed
 	users[u.Username] = u
 
-	newUser := User{u.Username, uniqueId}
+	newUser := NewUser(u.Username)
 	Users[u.Username] = newUser
 
-	return &newUser, nil
+	return newUser, nil
 }
 
 func Login(c echo.Context, name, password string) (*User, error) {
-	u := user{}
+	u := &user{}
 
 	// TODO: Extract Context out of this function
-	if err := c.Bind(&u); err != nil {
+	if err := c.Bind(u); err != nil {
 		fmt.Println(err)
 		return nil, errors.New("Bad request")
 	}
@@ -100,12 +108,10 @@ func Login(c echo.Context, name, password string) (*User, error) {
 
 	if !checkPasswordHash(user.Password, hashed) {
 		fmt.Println("Incorrect password")
-		c.Response().Header().Set("HX-Retarget", "#error")
-		c.Response().Header().Set("HX-Reswap", "innerHTML")
 		return nil, errors.New("Incorrect password")
 	}
 
 	loggedInUser := Users[u.Username]
 
-	return &loggedInUser, nil
+	return loggedInUser, nil
 }

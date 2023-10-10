@@ -25,7 +25,7 @@ func checkLoggedIn(username string, usernameExists bool) (*user.User, bool) {
 		validUser, userExists := user.Users[username]
 
 		if userExists {
-			return &validUser, true
+			return validUser, true
 		}
 	}
 
