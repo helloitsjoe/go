@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"htmx/db"
+	"htmx/types"
 	"htmx/user"
 	"net/http"
 	"strconv"
@@ -13,14 +15,14 @@ import (
 type ctx map[string]interface{}
 
 type Handlers struct {
-	db string
+	db *db.DB
 }
 
-func New(db string) Handlers {
+func NewHandlers(db *db.DB) Handlers {
 	return Handlers{db}
 }
 
-func checkLoggedIn(username string, usernameExists bool) (*user.User, bool) {
+func checkLoggedIn(username string, usernameExists bool) (*types.User, bool) {
 	if usernameExists {
 		validUser, userExists := user.Users[username]
 
@@ -38,11 +40,12 @@ func getSleep(reqSleep string) time.Duration {
 		sleep = reqSleep
 	} else {
 		fmt.Println("Error parsing sleep-seconds:", err)
+		fmt.Println("Continuing, sleeping for", sleep, "seconds")
 	}
 	return time.Duration(sleep)
 }
 
-func Index(c echo.Context) error {
+func (h Handlers) Index(c echo.Context) error {
 	username, ok := c.Get("username").(string)
 	loggedInUser, exists := checkLoggedIn(username, ok)
 
@@ -55,13 +58,14 @@ func Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
-func RegisterUser(c echo.Context) error {
+func (h Handlers) RegisterUser(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(sleep * time.Second)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	newUser, err := user.AddUser(c, username, password)
+	newUser, err := user.AddUser(c, h.db, username, password)
+	users := user.GetUsers(h.db)
 	if err != nil {
 		if err.Error() == "Bad request" {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -76,12 +80,12 @@ func RegisterUser(c echo.Context) error {
 
 	c.SetCookie(&http.Cookie{Name: "username", Value: newUser.Username, HttpOnly: true, MaxAge: 10 * 60})
 
-	data := ctx{"User": newUser, "Users": user.Users}
+	data := ctx{"User": newUser, "Users": users}
 
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
-func Login(c echo.Context) error {
+func (h Handlers) Login(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(time.Duration(sleep) * time.Second)
 	fmt.Println("Body", c.Request().Body)
@@ -89,7 +93,7 @@ func Login(c echo.Context) error {
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	loggedInUser, err := user.Login(c, username, password)
+	loggedInUser, err := user.Login(c, h.db, username, password)
 	if err != nil {
 		if err.Error() == "Bad request" {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -109,15 +113,15 @@ func Login(c echo.Context) error {
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
-func LoggedIn(c echo.Context) error {
+func (h Handlers) LoggedIn(c echo.Context) error {
 	return c.Render(http.StatusOK, "logged-in.html", ctx{"Users": user.Users})
 }
 
-func RenderRegister(c echo.Context) error {
+func (h Handlers) RenderRegister(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": true, "Users": user.Users})
 }
 
-func RenderLogin(c echo.Context) error {
+func (h Handlers) RenderLogin(c echo.Context) error {
 	authUsername, ok := c.Get("username").(string)
 	_, exists := checkLoggedIn(authUsername, ok)
 
@@ -128,7 +132,7 @@ func RenderLogin(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})
 }
 
-func AllUsers(c echo.Context) error {
+func (h Handlers) AllUsers(c echo.Context) error {
 	if c.QueryParam("format") == "json" {
 		return c.JSON(http.StatusOK, user.Users)
 	}
@@ -136,11 +140,11 @@ func AllUsers(c echo.Context) error {
 	return c.Render(http.StatusOK, "users.html", user.Users)
 }
 
-func About(c echo.Context) error {
+func (h Handlers) About(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", ctx{"Users": user.Users})
 }
 
-func Logout(c echo.Context) error {
+func (h Handlers) Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{Name: "username", Value: "", HttpOnly: true, MaxAge: 0})
 	c.Response().Header().Set("HX-Redirect", "/")
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})

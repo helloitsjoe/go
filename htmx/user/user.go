@@ -3,6 +3,8 @@ package user
 import (
 	"errors"
 	"fmt"
+	"htmx/db"
+	"htmx/types"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -19,44 +21,30 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-var users = map[string]*user{}
-var Users = map[string]*User{}
+// var users = map[string]*user{}
+var Users = map[string]*types.User{}
 
 // TODO: JWT
-// TODO: SQLite
 
-type user struct {
-	Username string `form:"username"`
-	Password string `form:"password"`
-}
-
-type User struct {
-	Username string
-	Id       int
-	UUID     uuid.UUID
-}
-
-var uniqueId = 0
-
-func NewUser(username string) *User {
-	uniqueId++
-	u := &User{}
+func NewUser(username string) *types.User {
+	u := &types.User{}
 	u.Username = username
-	u.Id = uniqueId
+	u.UUID = uuid.New()
 	return u
 }
 
-func SeedUsers() {
+func SeedUsers(db *db.DB) {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
 	for _, name := range u {
-		Users[name] = NewUser(name)
-		users[name] = &user{name, "bar"}
+		n := NewUser(name)
+		fmt.Println(n)
+		db.InsertUser(n.Username, "bar", n.UUID)
 	}
 }
 
-func AddUser(c echo.Context, name, password string) (*User, error) {
-	u := &user{}
+func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
+	u := NewUser(name)
 
 	// TODO: Extract Context out of this function
 	if err := c.Bind(u); err != nil {
@@ -64,28 +52,24 @@ func AddUser(c echo.Context, name, password string) (*User, error) {
 		return nil, errors.New("Bad request")
 	}
 
-	if u.Username == "" || u.Password == "" {
+	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
 		return nil, errors.New("Name and password must be provided")
 	}
 
-	hashed, err := hashPassword(u.Password)
+	hashed, err := hashPassword(password)
 	if err != nil {
 		fmt.Println("Error hashing password", err)
 		return nil, errors.New("Error hashing password")
 	}
 
-	u.Password = hashed
-	users[u.Username] = u
+	db.InsertUser(u.Username, hashed, u.UUID)
 
-	newUser := NewUser(u.Username)
-	Users[u.Username] = newUser
-
-	return newUser, nil
+	return u, nil
 }
 
-func Login(c echo.Context, name, password string) (*User, error) {
-	u := &user{}
+func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
+	u := NewUser(name)
 
 	// TODO: Extract Context out of this function
 	if err := c.Bind(u); err != nil {
@@ -93,25 +77,32 @@ func Login(c echo.Context, name, password string) (*User, error) {
 		return nil, errors.New("Bad request")
 	}
 
-	if u.Username == "" || u.Password == "" {
+	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
 		return nil, errors.New("Name and password must be provided")
 	}
 
-	hashed, err := hashPassword(u.Password)
+	hashed, err := hashPassword(password)
 	if err != nil {
 		fmt.Println("Error hashing password", err)
 		return nil, errors.New("Error hashing password")
 	}
 
-	user := users[u.Username]
+	// user := users[u.Username]
+	newUser, userHashed := db.FindUser(u.UUID)
 
-	if !checkPasswordHash(user.Password, hashed) {
+	if !checkPasswordHash(userHashed, hashed) {
 		fmt.Println("Incorrect password")
 		return nil, errors.New("Incorrect password")
 	}
 
-	loggedInUser := Users[u.Username]
+	// loggedInUser := Users[u.Username]
 
-	return loggedInUser, nil
+	return newUser, nil
+}
+
+func GetUsers(db *db.DB) []types.User {
+	users := db.GetAllUsers()
+
+	return users
 }

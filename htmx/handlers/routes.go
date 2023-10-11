@@ -3,20 +3,23 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 
+	"htmx/db"
 	"htmx/middleware"
 	"htmx/user"
 )
 
 // Typecheck in editor is not working correctly
 func Register(e *echo.Echo) {
-	user.SeedUsers()
+	d := db.CreateDB()
+	user.SeedUsers(d)
+	h := NewHandlers(d)
 
-	e.GET("/", middleware.Auth(Index))
-	e.GET("/about", About)
-	e.GET("/register", RenderRegister)
-	e.GET("/login", middleware.Auth(RenderLogin))
-	e.POST("/logout", Logout)
-	e.GET("/users", AllUsers)
-	e.POST("/register", RegisterUser)
-	e.POST("/login", Login)
+	e.GET("/", middleware.Auth(h.Index))
+	e.GET("/about", h.About)
+	e.GET("/register", h.RenderRegister)
+	e.GET("/login", middleware.Auth(h.RenderLogin))
+	e.POST("/logout", h.Logout)
+	e.GET("/users", h.AllUsers)
+	e.POST("/register", h.RegisterUser)
+	e.POST("/login", h.Login)
 }
