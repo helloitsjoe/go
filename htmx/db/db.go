@@ -92,7 +92,9 @@ func (db DB) GetAllUsers() []types.User {
 
 	u := []types.User{}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
+		fmt.Println("here")
 		foundUser := types.User{Username: obj.(user).Username, UUID: obj.(user).UUID}
+		fmt.Println(foundUser)
 		u = append(u, foundUser)
 		fmt.Println(u)
 	}

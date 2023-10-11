@@ -11,9 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func hashPassword(password string) (string, error) {
+func hashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	return string(bytes), err
+	if err != nil {
+		panic(err)
+	}
+	return string(bytes)
 }
 
 func checkPasswordHash(password, hash string) bool {
@@ -38,8 +41,11 @@ func SeedUsers(db *db.DB) {
 
 	for _, name := range u {
 		n := NewUser(name)
-		fmt.Println(n)
-		db.InsertUser(n.Username, "bar", n.UUID)
+		fmt.Println("inserting user", n)
+		p := hashPassword("bar")
+		id := db.InsertUser(n.Username, p, n.UUID)
+		fmt.Println("id", id)
+		fmt.Println(db.GetAllUsers())
 	}
 }
 
@@ -57,11 +63,7 @@ func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, err
 		return nil, errors.New("Name and password must be provided")
 	}
 
-	hashed, err := hashPassword(password)
-	if err != nil {
-		fmt.Println("Error hashing password", err)
-		return nil, errors.New("Error hashing password")
-	}
+	hashed := hashPassword(password)
 
 	db.InsertUser(u.Username, hashed, u.UUID)
 
@@ -82,11 +84,7 @@ func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error
 		return nil, errors.New("Name and password must be provided")
 	}
 
-	hashed, err := hashPassword(password)
-	if err != nil {
-		fmt.Println("Error hashing password", err)
-		return nil, errors.New("Error hashing password")
-	}
+	hashed := hashPassword(password)
 
 	// user := users[u.Username]
 	newUser, userHashed := db.FindUser(u.UUID)

@@ -133,11 +133,13 @@ func (h Handlers) RenderLogin(c echo.Context) error {
 }
 
 func (h Handlers) AllUsers(c echo.Context) error {
+	users := h.db.GetAllUsers()
+	fmt.Println(users)
 	if c.QueryParam("format") == "json" {
-		return c.JSON(http.StatusOK, user.Users)
+		return c.JSON(http.StatusOK, users)
 	}
 
-	return c.Render(http.StatusOK, "users.html", user.Users)
+	return c.Render(http.StatusOK, "users.html", users)
 }
 
 func (h Handlers) About(c echo.Context) error {
