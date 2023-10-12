@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"htmx/types"
+	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-memdb"
@@ -11,7 +12,7 @@ import (
 type user struct {
 	Username string
 	Password string
-	UUID     uuid.UUID
+	UUID     string
 }
 
 // type User struct {
@@ -36,10 +37,11 @@ func CreateDB() *DB {
 					"id": {
 						Name:    "id",
 						Unique:  true,
-						Indexer: &memdb.StringFieldIndex{Field: "UUID"},
+						Indexer: &memdb.UUIDFieldIndex{Field: "UUID"},
 					},
 					"password": {
 						Name:    "password",
+						Unique:  false,
 						Indexer: &memdb.StringFieldIndex{Field: "Password"},
 					},
 				},
@@ -58,7 +60,7 @@ func CreateDB() *DB {
 }
 
 func (d DB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	u := user{username, hashedPassword, id}
+	u := user{username, hashedPassword, id.String()}
 	txn := d.db.Txn(true)
 	if err := txn.Insert("user", u); err != nil {
 		panic(err)
@@ -72,13 +74,16 @@ func (d DB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID 
 func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	u, err := txn.First("user", "id", id)
+	u, err := txn.First("user", "id", id.String())
 	// TODO: What if not found?
 	if err != nil {
 		panic(err)
 	}
 
-	return u.(*types.User), u.(*user).Password
+	foundUser := u.(user)
+	result := &types.User{Username: foundUser.Username, UUID: id}
+
+	return result, foundUser.Password
 }
 
 func (db DB) GetAllUsers() []types.User {
@@ -92,11 +97,15 @@ func (db DB) GetAllUsers() []types.User {
 
 	u := []types.User{}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		fmt.Println("here")
-		foundUser := types.User{Username: obj.(user).Username, UUID: obj.(user).UUID}
-		fmt.Println(foundUser)
+		fmt.Println("here", reflect.TypeOf(obj.(user).UUID))
+		id, err := uuid.Parse(obj.(user).UUID)
+		if err != nil {
+			panic(err)
+		}
+		foundUser := types.User{Username: obj.(user).Username, UUID: id}
+		// fmt.Println(foundUser)
 		u = append(u, foundUser)
-		fmt.Println(u)
+		// fmt.Println(u)
 	}
 
 	return u

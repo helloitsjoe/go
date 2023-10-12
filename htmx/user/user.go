@@ -39,14 +39,24 @@ func NewUser(username string) *types.User {
 func SeedUsers(db *db.DB) {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
+	users := map[string]*types.User{}
+
 	for _, name := range u {
 		n := NewUser(name)
+		users[name] = n
 		fmt.Println("inserting user", n)
+		before := db.GetAllUsers()
+		fmt.Println("all users before", before)
 		p := hashPassword("bar")
 		id := db.InsertUser(n.Username, p, n.UUID)
 		fmt.Println("id", id)
-		fmt.Println(db.GetAllUsers())
+		after := db.GetAllUsers()
+		fmt.Println("all users after", after)
 	}
+	uu := users["Alice"].UUID
+	fmt.Println("uu", uu)
+	a, _ := db.FindUser(uu)
+	fmt.Println("Alice", a)
 }
 
 func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
