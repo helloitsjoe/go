@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,11 +23,15 @@ func NewHandlers(db *db.DB) Handlers {
 	return Handlers{db}
 }
 
-func checkLoggedIn(username string, usernameExists bool) (*types.User, bool) {
-	if usernameExists {
-		validUser, userExists := user.Users[username]
+func checkLoggedIn(id string, idExists bool, db *db.DB) (*types.User, bool) {
+	if idExists {
+		u, err := uuid.Parse(id)
+		if err != nil {
+			panic(err)
+		}
+		validUser, _ := db.FindUser(u)
 
-		if userExists {
+		if validUser != nil {
 			return validUser, true
 		}
 	}
@@ -46,15 +51,17 @@ func getSleep(reqSleep string) time.Duration {
 }
 
 func (h Handlers) Index(c echo.Context) error {
-	username, ok := c.Get("username").(string)
-	loggedInUser, exists := checkLoggedIn(username, ok)
+	// TODO: Replace username cookie with ID
+	id, ok := c.Get("uuid").(string)
+	loggedInUser, exists := checkLoggedIn(id, ok, h.db)
+	users := h.db.GetAllUsers()
 
 	if exists {
-		data := ctx{"Users": user.Users, "User": loggedInUser}
+		data := ctx{"Users": users, "User": loggedInUser}
 		return c.Render(http.StatusOK, "index.html", data)
 	}
 
-	data := ctx{"Register": "true", "Users": user.Users}
+	data := ctx{"Register": "true", "Users": users}
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
@@ -106,7 +113,8 @@ func (h Handlers) Login(c echo.Context) error {
 		return c.Render(http.StatusOK, "error.html", ctx{"Error": err.Error()})
 	}
 
-	data := ctx{"User": loggedInUser, "Users": user.Users}
+	users := h.db.GetAllUsers()
+	data := ctx{"User": loggedInUser, "Users": users}
 
 	c.SetCookie(&http.Cookie{Name: "username", Value: loggedInUser.Username, HttpOnly: true, MaxAge: 10 * 60})
 
@@ -114,22 +122,25 @@ func (h Handlers) Login(c echo.Context) error {
 }
 
 func (h Handlers) LoggedIn(c echo.Context) error {
-	return c.Render(http.StatusOK, "logged-in.html", ctx{"Users": user.Users})
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "logged-in.html", ctx{"Users": users})
 }
 
 func (h Handlers) RenderRegister(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": true, "Users": user.Users})
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": true, "Users": users})
 }
 
 func (h Handlers) RenderLogin(c echo.Context) error {
-	authUsername, ok := c.Get("username").(string)
-	_, exists := checkLoggedIn(authUsername, ok)
+	id, ok := c.Get("uuid").(string)
+	_, exists := checkLoggedIn(id, ok, h.db)
 
 	if exists {
 		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
 }
 
 func (h Handlers) AllUsers(c echo.Context) error {
@@ -143,11 +154,13 @@ func (h Handlers) AllUsers(c echo.Context) error {
 }
 
 func (h Handlers) About(c echo.Context) error {
-	return c.Render(http.StatusOK, "about.html", ctx{"Users": user.Users})
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "about.html", ctx{"Users": users})
 }
 
 func (h Handlers) Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{Name: "username", Value: "", HttpOnly: true, MaxAge: 0})
 	c.Response().Header().Set("HX-Redirect", "/")
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": user.Users})
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
 }

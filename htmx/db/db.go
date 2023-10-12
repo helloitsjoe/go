@@ -1,9 +1,7 @@
 package db
 
 import (
-	"fmt"
 	"htmx/types"
-	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-memdb"
@@ -14,10 +12,6 @@ type user struct {
 	Password string
 	UUID     string
 }
-
-// type User struct {
-// 	Username string
-// }
 
 type DB struct {
 	db *memdb.MemDB
@@ -75,9 +69,13 @@ func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
 	u, err := txn.First("user", "id", id.String())
-	// TODO: What if not found?
 	if err != nil {
 		panic(err)
+	}
+
+	// TODO: Maybe return error if not found?
+	if u == nil {
+		return nil, ""
 	}
 
 	foundUser := u.(user)
@@ -97,15 +95,12 @@ func (db DB) GetAllUsers() []types.User {
 
 	u := []types.User{}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		fmt.Println("here", reflect.TypeOf(obj.(user).UUID))
 		id, err := uuid.Parse(obj.(user).UUID)
 		if err != nil {
 			panic(err)
 		}
 		foundUser := types.User{Username: obj.(user).Username, UUID: id}
-		// fmt.Println(foundUser)
 		u = append(u, foundUser)
-		// fmt.Println(u)
 	}
 
 	return u

@@ -24,9 +24,6 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-// var users = map[string]*user{}
-var Users = map[string]*types.User{}
-
 // TODO: JWT
 
 func NewUser(username string) *types.User {
@@ -39,24 +36,11 @@ func NewUser(username string) *types.User {
 func SeedUsers(db *db.DB) {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
-	users := map[string]*types.User{}
-
 	for _, name := range u {
 		n := NewUser(name)
-		users[name] = n
-		fmt.Println("inserting user", n)
-		before := db.GetAllUsers()
-		fmt.Println("all users before", before)
 		p := hashPassword("bar")
-		id := db.InsertUser(n.Username, p, n.UUID)
-		fmt.Println("id", id)
-		after := db.GetAllUsers()
-		fmt.Println("all users after", after)
+		db.InsertUser(n.Username, p, n.UUID)
 	}
-	uu := users["Alice"].UUID
-	fmt.Println("uu", uu)
-	a, _ := db.FindUser(uu)
-	fmt.Println("Alice", a)
 }
 
 func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
@@ -96,15 +80,13 @@ func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error
 
 	hashed := hashPassword(password)
 
-	// user := users[u.Username]
+	// TODO: Separate function for FindHash?
 	newUser, userHashed := db.FindUser(u.UUID)
 
 	if !checkPasswordHash(userHashed, hashed) {
 		fmt.Println("Incorrect password")
 		return nil, errors.New("Incorrect password")
 	}
-
-	// loggedInUser := Users[u.Username]
 
 	return newUser, nil
 }
