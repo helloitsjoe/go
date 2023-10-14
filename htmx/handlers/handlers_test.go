@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"htmx/db"
 	"htmx/router"
+	"htmx/types"
 	"htmx/user"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -40,99 +43,104 @@ func TestGetUsersHtmx(t *testing.T) {
 	assert.Contains(t, r, "Carl")
 }
 
-// func TestGetUsersJson(t *testing.T) {
-// 	h := NewHandlers(db.CreateDB())
-// 	e := router.New("../")
-// 	Register(e)
-// 	req := httptest.NewRequest(echo.GET, "/users?format=json", strings.NewReader(""))
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	assert.NoError(t, h.AllUsers(c))
-// 	r := rec.Body.Bytes()
-// 	users := map[string]types.User{}
-// 	err := json.Unmarshal(r, &users)
-// 	assert.Nil(t, err)
+func TestGetUsersJson(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	req := httptest.NewRequest(echo.GET, "/users?format=json", strings.NewReader(""))
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.AllUsers(c))
+	r := rec.Body.Bytes()
+	users := []types.User{}
+	err := json.Unmarshal(r, &users)
+	assert.Nil(t, err)
 
-// 	alice, bob, carl := users["Alice"], users["Bob"], users["Carl"]
+	alice, bob, carl := users[0], users[1], users[2]
 
-// 	assert.Equal(t, alice.Username, "Alice")
-// 	assert.Equal(t, bob.Username, "Bob")
-// 	assert.Equal(t, carl.Username, "Carl")
+	assert.Equal(t, alice.Username, "Alice")
+	assert.Equal(t, bob.Username, "Bob")
+	assert.Equal(t, carl.Username, "Carl")
 
-// 	// Bit annoying way to check that the Ids are unique
-// 	assert.NotEqual(t, alice.UUID, bob.UUID)
-// 	assert.NotEqual(t, bob.UUID, carl.UUID)
-// 	assert.NotEqual(t, alice.UUID, carl.UUID)
-// }
+	// Bit annoying way to check that the Ids are unique
+	assert.NotEqual(t, alice.UUID, bob.UUID)
+	assert.NotEqual(t, bob.UUID, carl.UUID)
+	assert.NotEqual(t, alice.UUID, carl.UUID)
+}
 
-// func TestRegisterUserNoInput(t *testing.T) {
-// 	h := NewHandlers(db.CreateDB())
-// 	e := router.New("../")
-// 	Register(e)
-// 	req := httptest.NewRequest(echo.GET, "/register", strings.NewReader(""))
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	assert.NoError(t, h.RegisterUser(c))
-// 	r := rec.Body.String()
-// 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
-// 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
-// 	assert.Contains(t, r, "div class=\"error\"")
-// 	assert.Contains(t, r, "Name and password must be provided")
-// }
+func TestRegisterUserNoInput(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	req := httptest.NewRequest(echo.GET, "/register", strings.NewReader(""))
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.RegisterUser(c))
+	r := rec.Body.String()
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "Name and password must be provided")
+}
 
-// func TestRegisterUserValid(t *testing.T) {
-// 	h := NewHandlers(db.CreateDB())
-// 	e := router.New("../")
-// 	Register(e)
-// 	form := url.Values{}
-// 	form.Add("username", "New User")
-// 	form.Add("password", "123")
-// 	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
-// 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-// 	rec := httptest.NewRecorder()
-// 	c := e.NewContext(req, rec)
-// 	assert.NoError(t, h.RegisterUser(c))
-// 	r := rec.Body.String()
-// 	cookie := rec.Header().Get("Set-Cookie")
-// 	assert.Contains(t, cookie, `username="New User"`)
-// 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
-// 	assert.Contains(t, r, `
-// <span id="logged-in-as" hx-swap-oob="true">
-//   <span>Logged in as New User</span>
-//   <button hx-post="/logout" class="text-btn">Log out</button>
-// </span>`)
-// 	assert.Contains(t, r, "New User, you're in.")
-// 	assert.Contains(t, r, "Logged in as New User")
-// 	assert.Contains(t, r, "Log out")
-// }
+func TestRegisterUserValid(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "New User")
+	form.Add("password", "123")
+	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.RegisterUser(c))
+	r := rec.Body.String()
+	cookie := rec.Header().Get("Set-Cookie")
+	assert.Contains(t, cookie, `uuid=`)
+	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
+	assert.Contains(t, r, `
+<span id="logged-in-as" hx-swap-oob="true">
+  <span>Logged in as New User</span>
+  <button hx-post="/logout" class="text-btn">Log out</button>
+</span>`)
+	assert.Contains(t, r, "New User, you're in.")
+	assert.Contains(t, r, "Logged in as New User")
+	assert.Contains(t, r, "Log out")
+}
 
-// // func TestLogin(t *testing.T) {
-// // 	e := router.New("../")
-// // 	Register(e)
-// // 	form := url.Values{}
-// // 	form.Add("username", "Alice")
-// // 	form.Add("password", "bar")
-// // 	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-// // 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-// // 	rec := httptest.NewRecorder()
-// // 	c := e.NewContext(req, rec)
-// // 	assert.NoError(t, Login(c))
-// // 	r := rec.Body.String()
-// // 	cookie := rec.Header().Get("Set-Cookie")
-// // 	assert.Contains(t, cookie, "username=Alice")
+func TestLogin(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "Alice")
+	form.Add("password", "bar")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.Login(c))
+	r := rec.Body.String()
+	cookie := rec.Header().Get("Set-Cookie")
+	assert.Contains(t, cookie, "uuid=")
 
-// // 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
-// // 	assert.Contains(t, r, `
-// // <span id="logged-in-as" hx-swap-oob="true">
-// //   <span>Logged in as Alice</span>
-// //   <button hx-post="/logout" class="text-btn">Log out</button>
-// // </span>`)
-// // 	// Clear error on a successful login
-// // 	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
-// // 	assert.Contains(t, r, "Alice, you're in.")
-// // 	assert.Contains(t, r, "Logged in as Alice")
-// // 	assert.Contains(t, r, "Log out")
-// // }
+	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
+	assert.Contains(t, r, `
+<span id="logged-in-as" hx-swap-oob="true">
+  <span>Logged in as Alice</span>
+  <button hx-post="/logout" class="text-btn">Log out</button>
+</span>`)
+	// Clear error on a successful login
+	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
+	assert.Contains(t, r, "Alice, you're in.")
+	assert.Contains(t, r, "Logged in as Alice")
+	assert.Contains(t, r, "Log out")
+}
 
 // // func TestLoginError(t *testing.T) {
 // // 	e := router.New("../")

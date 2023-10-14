@@ -6,6 +6,7 @@ import (
 	"htmx/types"
 	"htmx/user"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -37,6 +38,10 @@ func checkLoggedIn(id string, idExists bool, db *db.DB) (*types.User, bool) {
 	}
 
 	return nil, false
+}
+
+func getLoginCookie(user *types.User) *http.Cookie {
+	return &http.Cookie{Name: "uuid", Value: user.UUID.String(), HttpOnly: true, MaxAge: 10 * 60}
 }
 
 func getSleep(reqSleep string) time.Duration {
@@ -85,7 +90,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 		return c.Render(http.StatusOK, "error.html", ctx{"Error": err.Error()})
 	}
 
-	c.SetCookie(&http.Cookie{Name: "username", Value: newUser.Username, HttpOnly: true, MaxAge: 10 * 60})
+	c.SetCookie(getLoginCookie(newUser))
 
 	data := ctx{"User": newUser, "Users": users}
 
@@ -114,10 +119,10 @@ func (h Handlers) Login(c echo.Context) error {
 	}
 
 	users := h.db.GetAllUsers()
+
+	c.SetCookie(getLoginCookie(loggedInUser))
+
 	data := ctx{"User": loggedInUser, "Users": users}
-
-	c.SetCookie(&http.Cookie{Name: "username", Value: loggedInUser.Username, HttpOnly: true, MaxAge: 10 * 60})
-
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
@@ -145,7 +150,9 @@ func (h Handlers) RenderLogin(c echo.Context) error {
 
 func (h Handlers) AllUsers(c echo.Context) error {
 	users := h.db.GetAllUsers()
-	fmt.Println(users)
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Username < users[j].Username
+	})
 	if c.QueryParam("format") == "json" {
 		return c.JSON(http.StatusOK, users)
 	}

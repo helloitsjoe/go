@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"htmx/types"
 
 	"github.com/google/uuid"
@@ -68,6 +69,8 @@ func (d DB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID 
 func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
+	all := db.GetAllUsers()
+	fmt.Println(all)
 	u, err := txn.First("user", "id", id.String())
 	if err != nil {
 		panic(err)
@@ -79,6 +82,31 @@ func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
 	}
 
 	foundUser := u.(user)
+	result := &types.User{Username: foundUser.Username, UUID: id}
+
+	return result, foundUser.Password
+}
+
+func (db DB) FindUserByName(name string) (*types.User, string) {
+	txn := db.db.Txn(false)
+	defer txn.Abort()
+	all := db.GetAllUsers()
+	fmt.Println(all)
+	u, err := txn.First("user", "username", name)
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: Maybe return error if not found?
+	if u == nil {
+		return nil, ""
+	}
+
+	foundUser := u.(user)
+	id, err := uuid.Parse(foundUser.UUID)
+	if err != nil {
+		panic(err)
+	}
 	result := &types.User{Username: foundUser.Username, UUID: id}
 
 	return result, foundUser.Password

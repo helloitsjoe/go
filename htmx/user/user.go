@@ -65,13 +65,13 @@ func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, err
 }
 
 func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
-	u := NewUser(name)
+	u, userHashed := db.FindUserByName(name)
 
 	// TODO: Extract Context out of this function
-	if err := c.Bind(u); err != nil {
-		fmt.Println(err)
-		return nil, errors.New("Bad request")
-	}
+	// if err := c.Bind(u); err != nil {
+	// 	fmt.Println(err)
+	// 	return nil, errors.New("Bad request")
+	// }
 
 	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
@@ -80,15 +80,16 @@ func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error
 
 	hashed := hashPassword(password)
 
+	fmt.Println(u)
 	// TODO: Separate function for FindHash?
-	newUser, userHashed := db.FindUser(u.UUID)
+	// newUser, userHashed := db.FindUser(u.UUID)
 
 	if !checkPasswordHash(userHashed, hashed) {
 		fmt.Println("Incorrect password")
 		return nil, errors.New("Incorrect password")
 	}
 
-	return newUser, nil
+	return u, nil
 }
 
 func GetUsers(db *db.DB) []types.User {
