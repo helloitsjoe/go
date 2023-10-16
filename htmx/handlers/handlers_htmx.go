@@ -25,16 +25,18 @@ func NewHandlers(db *db.DB) Handlers {
 }
 
 func checkLoggedIn(id string, idExists bool, db *db.DB) (*types.User, bool) {
-	if idExists {
-		u, err := uuid.Parse(id)
-		if err != nil {
-			panic(err)
-		}
-		validUser, _ := db.FindUser(u)
+	if !idExists {
+		return nil, false
+	}
 
-		if validUser != nil {
-			return validUser, true
-		}
+	u, err := uuid.Parse(id)
+	if err != nil {
+		panic(err)
+	}
+	validUser, _ := db.FindUser(u)
+
+	if validUser != nil {
+		return validUser, true
 	}
 
 	return nil, false
@@ -76,7 +78,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	newUser, err := user.AddUser(c, h.db, username, password)
+	newUser, err := user.AddUser(h.db, username, password)
 	users := user.GetUsers(h.db)
 	if err != nil {
 		if err.Error() == "Bad request" {
@@ -105,7 +107,7 @@ func (h Handlers) Login(c echo.Context) error {
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	loggedInUser, err := user.Login(c, h.db, username, password)
+	loggedInUser, err := user.Login(h.db, username, password)
 	if err != nil {
 		if err.Error() == "Bad request" {
 			return c.String(http.StatusBadRequest, "bad request")

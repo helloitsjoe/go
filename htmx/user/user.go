@@ -7,7 +7,6 @@ import (
 	"htmx/types"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,8 +18,8 @@ func hashPassword(password string) string {
 	return string(bytes)
 }
 
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+func checkPasswordHash(plaintext, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plaintext))
 	return err == nil
 }
 
@@ -44,14 +43,8 @@ func SeedUsers(db *db.DB) {
 	}
 }
 
-func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
+func AddUser(db *db.DB, name, password string) (*types.User, error) {
 	u := NewUser(name)
-
-	// TODO: Extract Context out of this function
-	if err := c.Bind(u); err != nil {
-		fmt.Println(err)
-		return nil, errors.New("Bad request")
-	}
 
 	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
@@ -65,17 +58,9 @@ func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, err
 	return u, nil
 }
 
-func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
+func Login(db *db.DB, name, password string) (*types.User, error) {
 	// TODO: Separate function for finding hashed password?
 	u, userHashed := db.FindUserByName(name)
-
-	// TODO: Extract Context out of this function
-	// if err := c.Bind(u); err != nil {
-	// 	fmt.Println(err)
-	// 	return nil, errors.New("Bad request")
-	// }
-
-	fmt.Println("in Login", password)
 
 	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
