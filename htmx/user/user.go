@@ -39,6 +39,7 @@ func SeedUsers(db *db.DB) {
 	for _, name := range u {
 		n := NewUser(name)
 		p := hashPassword("bar")
+		fmt.Println("p", p)
 		db.InsertUser(n.Username, p, n.UUID)
 	}
 }
@@ -65,6 +66,7 @@ func AddUser(c echo.Context, db *db.DB, name, password string) (*types.User, err
 }
 
 func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error) {
+	// TODO: Separate function for finding hashed password?
 	u, userHashed := db.FindUserByName(name)
 
 	// TODO: Extract Context out of this function
@@ -73,18 +75,14 @@ func Login(c echo.Context, db *db.DB, name, password string) (*types.User, error
 	// 	return nil, errors.New("Bad request")
 	// }
 
+	fmt.Println("in Login", password)
+
 	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")
 		return nil, errors.New("Name and password must be provided")
 	}
 
-	hashed := hashPassword(password)
-
-	fmt.Println(u)
-	// TODO: Separate function for FindHash?
-	// newUser, userHashed := db.FindUser(u.UUID)
-
-	if !checkPasswordHash(userHashed, hashed) {
+	if !checkPasswordHash(password, userHashed) {
 		fmt.Println("Incorrect password")
 		return nil, errors.New("Incorrect password")
 	}

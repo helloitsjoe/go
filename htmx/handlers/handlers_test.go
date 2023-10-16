@@ -129,7 +129,7 @@ func TestLogin(t *testing.T) {
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, "uuid=")
 
-	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
+	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">3</span>")
 	assert.Contains(t, r, `
 <span id="logged-in-as" hx-swap-oob="true">
   <span>Logged in as Alice</span>
@@ -142,35 +142,39 @@ func TestLogin(t *testing.T) {
 	assert.Contains(t, r, "Log out")
 }
 
-// // func TestLoginError(t *testing.T) {
-// // 	e := router.New("../")
-// // 	Register(e)
-// // 	form := url.Values{}
-// // 	form.Add("username", "Alice")
-// // 	form.Add("password", "wrong-password")
-// // 	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-// // 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-// // 	rec := httptest.NewRecorder()
-// // 	c := e.NewContext(req, rec)
-// // 	assert.NoError(t, Login(c))
-// // 	r := rec.Body.String()
-// // 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
-// // 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
-// // 	assert.Contains(t, r, "div class=\"error\"")
-// // 	assert.Contains(t, r, "Incorrect password")
-// // }
+func TestLoginError(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "Alice")
+	form.Add("password", "wrong-password")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.Login(c))
+	r := rec.Body.String()
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "Incorrect password")
+}
 
-// // func TestLogout(t *testing.T) {
-// // 	e := router.New("../")
-// // 	Register(e)
-// // 	req := httptest.NewRequest(echo.POST, "/logout", nil)
-// // 	rec := httptest.NewRecorder()
-// // 	c := e.NewContext(req, rec)
-// // 	assert.NoError(t, Logout(c))
-// // 	r := rec.Body.String()
-// // 	assert.Contains(t, rec.Header().Get("Set-Cookie"), "username=;")
-// // 	fmt.Println(r)
-// // 	assert.Contains(t, r, "<h2>Log In</h2>")
-// // 	assert.NotContains(t, r, "Logged in as")
-// // 	assert.NotContains(t, r, "Log out")
-// // }
+func TestLogout(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	Register(e)
+	req := httptest.NewRequest(echo.POST, "/logout", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.Logout(c))
+	r := rec.Body.String()
+	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=;")
+	assert.Contains(t, r, "<h2>Log In</h2>")
+	assert.NotContains(t, r, "Logged in as")
+	assert.NotContains(t, r, "Log out")
+}
