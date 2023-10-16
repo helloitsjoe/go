@@ -14,7 +14,7 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		uuid, err := c.Cookie("uuid")
 
 		if err != nil && !strings.Contains(err.Error(), "named cookie not present") {
-			fmt.Println(err)
+			fmt.Println("Error reading cookie:", err)
 			return err
 		}
 

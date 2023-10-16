@@ -166,7 +166,7 @@ func (h Handlers) About(c echo.Context) error {
 }
 
 func (h Handlers) Logout(c echo.Context) error {
-	c.SetCookie(&http.Cookie{Name: "uuid", Value: "", HttpOnly: true, MaxAge: 0})
+	c.SetCookie(&http.Cookie{Name: "uuid", Value: "", HttpOnly: true, MaxAge: -1})
 	c.Response().Header().Set("HX-Redirect", "/")
 	users := h.db.GetAllUsers()
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})

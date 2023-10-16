@@ -173,7 +173,7 @@ func TestLogout(t *testing.T) {
 	c := e.NewContext(req, rec)
 	assert.NoError(t, h.Logout(c))
 	r := rec.Body.String()
-	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=;")
+	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=; Max-Age=0; HttpOnly")
 	assert.Contains(t, r, "<h2>Log In</h2>")
 	assert.NotContains(t, r, "Logged in as")
 	assert.NotContains(t, r, "Log out")
