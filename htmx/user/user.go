@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"htmx/db"
 	"htmx/types"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -38,13 +39,18 @@ func SeedUsers(db *db.DB) {
 	for _, name := range u {
 		n := NewUser(name)
 		p := hashPassword("bar")
-		fmt.Println("p", p)
 		db.InsertUser(n.Username, p, n.UUID)
 	}
 }
 
-func AddUser(db *db.DB, name, password string) (*types.User, error) {
+func AddUser(db *db.DB, name, password string, users []types.User) (*types.User, error) {
 	u := NewUser(name)
+
+	for _, u := range users {
+		if strings.EqualFold(u.Username, name) {
+			return nil, errors.New("That username is already taken")
+		}
+	}
 
 	if u.Username == "" || password == "" {
 		fmt.Println("Name and password must be provided")

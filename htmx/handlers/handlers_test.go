@@ -85,6 +85,33 @@ func TestRegisterUserNoInput(t *testing.T) {
 	assert.Contains(t, r, "Name and password must be provided")
 }
 
+func TestRegisterUserExistsFail(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "Alice")
+	form.Add("password", "bar")
+	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.RegisterUser(c))
+	r := rec.Body.String()
+
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "That username is already taken")
+
+	cookie := rec.Header().Get("Set-Cookie")
+	assert.NotContains(t, cookie, `uuid=`)
+
+	assert.NotContains(t, r, "Alice, you're in.")
+	assert.NotContains(t, r, "Log out")
+}
+
 func TestRegisterUserValid(t *testing.T) {
 	d := db.CreateDB()
 	h := NewHandlers(d)

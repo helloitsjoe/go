@@ -72,14 +72,17 @@ func (h Handlers) Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
+// TODO NEXT: User shouldn't be able to log in at register screen
 func (h Handlers) RegisterUser(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(sleep * time.Second)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	newUser, err := user.AddUser(h.db, username, password)
+	// MemDB doesn't enforce uniqueness: https://github.com/hashicorp/go-memdb/issues/7
 	users := user.GetUsers(h.db)
+	newUser, err := user.AddUser(h.db, username, password, users)
+
 	if err != nil {
 		if err.Error() == "Bad request" {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -92,6 +95,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 		return c.Render(http.StatusOK, "error.html", ctx{"Error": err.Error()})
 	}
 
+	users = append(users, *newUser)
 	c.SetCookie(getLoginCookie(newUser))
 
 	data := ctx{"User": newUser, "Users": users}
@@ -99,9 +103,11 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
+// TODO NEXT: Login should fail if user doesn't exist (currently hangs)
 func (h Handlers) Login(c echo.Context) error {
+	fmt.Println("hi")
 	sleep := getSleep(c.Request().FormValue("sleep"))
-	time.Sleep(time.Duration(sleep) * time.Second)
+	time.Sleep(sleep * time.Second)
 	fmt.Println("Body", c.Request().Body)
 	fmt.Println("Password", c.Request().FormValue("password"))
 	username := c.Request().FormValue("username")
