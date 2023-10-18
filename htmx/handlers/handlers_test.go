@@ -169,6 +169,7 @@ func TestLogin(t *testing.T) {
 	assert.Contains(t, r, "Log out")
 }
 
+// TODO: convert some of these to user unit tests
 func TestLoginError(t *testing.T) {
 	d := db.CreateDB()
 	h := NewHandlers(d)
@@ -186,7 +187,47 @@ func TestLoginError(t *testing.T) {
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
 	assert.Contains(t, r, "div class=\"error\"")
-	assert.Contains(t, r, "Incorrect password")
+	assert.Contains(t, r, "Incorrect login credentials")
+}
+
+func TestLoginNoUsernamePassword(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "")
+	form.Add("password", "")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.Login(c))
+	r := rec.Body.String()
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "Name and password must be provided")
+}
+
+func TestLoginNoAccount(t *testing.T) {
+	d := db.CreateDB()
+	h := NewHandlers(d)
+	user.SeedUsers(d)
+	e := router.New("../")
+	form := url.Values{}
+	form.Add("username", "Not a user")
+	form.Add("password", "bar")
+	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	assert.NoError(t, h.Login(c))
+	r := rec.Body.String()
+	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
+	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
+	assert.Contains(t, r, "div class=\"error\"")
+	assert.Contains(t, r, "Incorrect login credentials")
 }
 
 func TestLogout(t *testing.T) {

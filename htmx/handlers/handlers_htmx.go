@@ -72,14 +72,12 @@ func (h Handlers) Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
-// TODO NEXT: User shouldn't be able to log in at register screen
 func (h Handlers) RegisterUser(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(sleep * time.Second)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	// MemDB doesn't enforce uniqueness: https://github.com/hashicorp/go-memdb/issues/7
 	users := user.GetUsers(h.db)
 	newUser, err := user.AddUser(h.db, username, password, users)
 
