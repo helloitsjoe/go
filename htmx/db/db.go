@@ -115,7 +115,7 @@ func (db DB) FindUserByName(name string) (*types.User, string) {
 func (db DB) GetAllUsers() []types.User {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	it, err := txn.Get("user", "id")
+	it, err := txn.Get("user", "username")
 	// TODO: What if not found?
 	if err != nil {
 		panic(err)
