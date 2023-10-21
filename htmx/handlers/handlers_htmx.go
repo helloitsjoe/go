@@ -101,7 +101,6 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	return c.Render(http.StatusOK, "logged-in.html", data)
 }
 
-// TODO NEXT: Login should fail if user doesn't exist (currently hangs)
 func (h Handlers) Login(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(sleep * time.Second)
