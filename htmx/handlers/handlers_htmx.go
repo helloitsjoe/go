@@ -103,7 +103,6 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 
 // TODO NEXT: Login should fail if user doesn't exist (currently hangs)
 func (h Handlers) Login(c echo.Context) error {
-	fmt.Println("hi")
 	sleep := getSleep(c.Request().FormValue("sleep"))
 	time.Sleep(sleep * time.Second)
 	fmt.Println("Body", c.Request().Body)
