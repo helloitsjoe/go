@@ -235,7 +235,6 @@ func TestLogout(t *testing.T) {
 	h := NewHandlers(d)
 	user.SeedUsers(d)
 	e := router.New("../")
-	Register(e)
 	req := httptest.NewRequest(echo.POST, "/logout", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"htmx/db"
 	"htmx/router"
+	"htmx/user"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,7 +15,9 @@ import (
 
 func makeRequest(method, path string) *httptest.ResponseRecorder {
 	e := router.New("../")
-	Register(e)
+	d := db.CreateDB()
+	user.SeedUsers(d)
+	Register(e, d)
 	req := httptest.NewRequest(method, path, strings.NewReader(""))
 	writer := httptest.NewRecorder()
 	e.ServeHTTP(writer, req)

@@ -5,12 +5,9 @@ import (
 
 	"htmx/db"
 	"htmx/middleware"
-	"htmx/user"
 )
 
-func Register(e *echo.Echo) {
-	d := db.CreateDB()
-	user.SeedUsers(d)
+func Register(e *echo.Echo, d *db.DB) {
 	h := NewHandlers(d)
 
 	e.GET("/", middleware.Auth(h.Index))

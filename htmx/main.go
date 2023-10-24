@@ -1,14 +1,16 @@
 package main
 
 import (
+	"htmx/db"
 	"htmx/handlers"
 	"htmx/router"
+	"htmx/user"
 )
 
 func main() {
-	// d := db.CreateDB()
-	// h := handlers.New(d)
 	e := router.New("")
-	handlers.Register(e)
+	d := db.CreateDB()
+	user.SeedUsers(d)
+	handlers.Register(e, d)
 	e.Logger.Fatal(e.Start(":8080"))
 }
