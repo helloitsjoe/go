@@ -1,0 +1,9 @@
+{{ define "login" }}
+<div id="error"/></div>
+<form hx-post="/login" hx-swap="outerHTML" class="form">
+  <h2>Log In</h2>
+  {{ template "inputs" }}
+  <a href="/register">Switch to register</a>
+</form>
+{{ end }}
+

@@ -1,7 +1,9 @@
 {{ define "main" }}
 {{ if .User }}
   {{ template "logged-in" . }}
-{{ else }}
+{{ else if .Register }}
   {{ template "register" . }}
+{{ else }}
+  {{ template "login" . }}
 {{ end }}
 {{ end }}

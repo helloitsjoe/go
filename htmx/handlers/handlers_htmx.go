@@ -58,7 +58,6 @@ func getSleep(reqSleep string) time.Duration {
 }
 
 func (h Handlers) Index(c echo.Context) error {
-	// TODO: Replace username cookie with ID
 	id, ok := c.Get("uuid").(string)
 	loggedInUser, exists := checkLoggedIn(id, ok, h.db)
 	users := h.db.GetAllUsers()
@@ -68,7 +67,7 @@ func (h Handlers) Index(c echo.Context) error {
 		return c.Render(http.StatusOK, "index.html", data)
 	}
 
-	data := ctx{"Register": "true", "Users": users}
+	data := ctx{"Register": c.Path() != "/login", "Users": users}
 	return c.Render(http.StatusOK, "index.html", data)
 }
 
@@ -133,23 +132,6 @@ func (h Handlers) Login(c echo.Context) error {
 func (h Handlers) LoggedIn(c echo.Context) error {
 	users := h.db.GetAllUsers()
 	return c.Render(http.StatusOK, "logged-in.html", ctx{"Users": users})
-}
-
-func (h Handlers) RenderRegister(c echo.Context) error {
-	users := h.db.GetAllUsers()
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": true, "Users": users})
-}
-
-func (h Handlers) RenderLogin(c echo.Context) error {
-	id, ok := c.Get("uuid").(string)
-	_, exists := checkLoggedIn(id, ok, h.db)
-
-	if exists {
-		return c.Redirect(http.StatusTemporaryRedirect, "/")
-	}
-
-	users := h.db.GetAllUsers()
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
 }
 
 func (h Handlers) AllUsers(c echo.Context) error {

@@ -8,16 +8,15 @@ import (
 	"htmx/user"
 )
 
-// Typecheck in editor is not working correctly
 func Register(e *echo.Echo) {
 	d := db.CreateDB()
 	user.SeedUsers(d)
 	h := NewHandlers(d)
 
 	e.GET("/", middleware.Auth(h.Index))
+	e.GET("/register", middleware.Auth(h.Index))
+	e.GET("/login", middleware.Auth(h.Index))
 	e.GET("/about", h.About)
-	e.GET("/register", h.RenderRegister)
-	e.GET("/login", middleware.Auth(h.RenderLogin))
 	e.POST("/logout", h.Logout)
 	e.GET("/users", h.AllUsers)
 	e.POST("/register", h.RegisterUser)
