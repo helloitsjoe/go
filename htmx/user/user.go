@@ -33,7 +33,7 @@ func NewUser(username string) *types.User {
 	return u
 }
 
-func SeedUsers(db *db.DB) {
+func SeedUsers(db db.DB) {
 	u := [3]string{"Alice", "Bob", "Carl"}
 
 	for _, name := range u {
@@ -43,7 +43,7 @@ func SeedUsers(db *db.DB) {
 	}
 }
 
-func AddUser(db *db.DB, name, password string, users []types.User) (*types.User, error) {
+func AddUser(db db.DB, name, password string, users []types.User) (*types.User, error) {
 	u := NewUser(name)
 
 	// MemDB doesn't enforce uniqueness, so we have to check manually before
@@ -66,7 +66,7 @@ func AddUser(db *db.DB, name, password string, users []types.User) (*types.User,
 	return u, nil
 }
 
-func Login(db *db.DB, name, password string) (*types.User, error) {
+func Login(db db.DB, name, password string) (*types.User, error) {
 	// TODO: Separate function for finding hashed password?
 	u, userHashed := db.FindUserByName(name)
 	if name == "" || password == "" {
@@ -87,7 +87,7 @@ func Login(db *db.DB, name, password string) (*types.User, error) {
 	return u, nil
 }
 
-func GetUsers(db *db.DB) []types.User {
+func GetUsers(db db.DB) []types.User {
 	users := db.GetAllUsers()
 
 	return users

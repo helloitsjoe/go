@@ -17,14 +17,14 @@ import (
 type ctx map[string]interface{}
 
 type Handlers struct {
-	db *db.DB
+	db db.DB
 }
 
-func NewHandlers(db *db.DB) Handlers {
+func NewHandlers(db db.DB) Handlers {
 	return Handlers{db}
 }
 
-func checkLoggedIn(id string, idExists bool, db *db.DB) (*types.User, bool) {
+func checkLoggedIn(id string, idExists bool, db db.DB) (*types.User, bool) {
 	if !idExists {
 		return nil, false
 	}

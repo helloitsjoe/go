@@ -7,7 +7,7 @@ import (
 	"htmx/middleware"
 )
 
-func Register(e *echo.Echo, d *db.DB) {
+func Register(e *echo.Echo, d db.DB) {
 	h := NewHandlers(d)
 
 	e.GET("/", middleware.Auth(h.Index))

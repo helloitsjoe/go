@@ -8,17 +8,32 @@ import (
 	"github.com/hashicorp/go-memdb"
 )
 
+type DB interface {
+	InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID
+	FindUser(id uuid.UUID) (*types.User, string)
+	FindUserByName(name string) (*types.User, string)
+	GetAllUsers() []types.User
+}
+
 type user struct {
 	Username string
 	Password string
 	UUID     string
 }
 
-type DB struct {
+type MemDB struct {
 	db *memdb.MemDB
 }
 
-func CreateDB() *DB {
+func toUser(u user) types.User {
+	id, err := uuid.Parse(u.UUID)
+	if err != nil {
+		panic(err)
+	}
+	return types.User{Username: u.Username, UUID: id}
+}
+
+func CreateDB() DB {
 	schema := &memdb.DBSchema{
 		Tables: map[string]*memdb.TableSchema{
 			"user": {
@@ -49,12 +64,12 @@ func CreateDB() *DB {
 		panic(err)
 	}
 
-	d := &DB{db}
+	d := &MemDB{db}
 
 	return d
 }
 
-func (d DB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
+func (d MemDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
 	u := user{username, hashedPassword, id.String()}
 	txn := d.db.Txn(true)
 	if err := txn.Insert("user", u); err != nil {
@@ -66,7 +81,7 @@ func (d DB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID 
 	return id
 }
 
-func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
+func (db MemDB) FindUser(id uuid.UUID) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
 	all := db.GetAllUsers()
@@ -82,12 +97,12 @@ func (db DB) FindUser(id uuid.UUID) (*types.User, string) {
 	}
 
 	foundUser := u.(user)
-	result := &types.User{Username: foundUser.Username, UUID: id}
+	result := toUser(foundUser)
 
-	return result, foundUser.Password
+	return &result, foundUser.Password
 }
 
-func (db DB) FindUserByName(name string) (*types.User, string) {
+func (db MemDB) FindUserByName(name string) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
 	all := db.GetAllUsers()
@@ -103,16 +118,12 @@ func (db DB) FindUserByName(name string) (*types.User, string) {
 	}
 
 	foundUser := u.(user)
-	id, err := uuid.Parse(foundUser.UUID)
-	if err != nil {
-		panic(err)
-	}
-	result := &types.User{Username: foundUser.Username, UUID: id}
+	result := toUser(foundUser)
 
-	return result, foundUser.Password
+	return &result, foundUser.Password
 }
 
-func (db DB) GetAllUsers() []types.User {
+func (db MemDB) GetAllUsers() []types.User {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
 	it, err := txn.Get("user", "username")
@@ -123,11 +134,7 @@ func (db DB) GetAllUsers() []types.User {
 
 	u := []types.User{}
 	for obj := it.Next(); obj != nil; obj = it.Next() {
-		id, err := uuid.Parse(obj.(user).UUID)
-		if err != nil {
-			panic(err)
-		}
-		foundUser := types.User{Username: obj.(user).Username, UUID: id}
+		foundUser := toUser(obj.(user))
 		u = append(u, foundUser)
 	}
 
