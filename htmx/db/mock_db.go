@@ -6,29 +6,32 @@ import (
 	"github.com/google/uuid"
 )
 
-type MockDB struct{}
+// MockDB is unused, but it's an example of how an interface can be used with multiple implementations in Go
 
-func CreateMockDB() DB {
-	return &MockDB{}
+type MockDB struct {
+	users map[string]user
 }
 
-var users map[string]user = map[string]user{}
+func CreateMockDB() DB {
+	users := map[string]user{}
+	return &MockDB{users}
+}
 
-func (mdb MockDB) GetAllUsers() []types.User {
+func (d MockDB) GetAllUsers() []types.User {
 	result := []types.User{}
-	for _, u := range users {
+	for _, u := range d.users {
 		result = append(result, toUser(u))
 	}
 	return result
 }
 
-func (mdb MockDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	users[id.String()] = user{username, hashedPassword, id.String()}
+func (d MockDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
+	d.users[id.String()] = user{username, hashedPassword, id.String()}
 	return id
 }
 
-func (mdb MockDB) FindUser(id uuid.UUID) (*types.User, string) {
-	foundUser, ok := users[id.String()]
+func (d MockDB) FindUser(id uuid.UUID) (*types.User, string) {
+	foundUser, ok := d.users[id.String()]
 	if !ok {
 		return nil, ""
 	}
@@ -36,8 +39,8 @@ func (mdb MockDB) FindUser(id uuid.UUID) (*types.User, string) {
 	return &u, foundUser.Password
 }
 
-func (mdb MockDB) FindUserByName(name string) (*types.User, string) {
-	for _, u := range users {
+func (d MockDB) FindUserByName(name string) (*types.User, string) {
+	for _, u := range d.users {
 		if u.Username == name {
 			found := toUser(u)
 			return &found, u.Password
