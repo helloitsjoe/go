@@ -6,6 +6,7 @@ import (
 	"htmx/router"
 	"htmx/types"
 	"htmx/user"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -16,12 +17,7 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	h := NewHandlers(db.CreateDB())
-	e := router.New("../")
-	req := httptest.NewRequest(echo.GET, "/", strings.NewReader(""))
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Index(c))
+	rec := makeRequest(http.MethodGet, "/")
 	r := rec.Body.String()
 	assert.Contains(t, r, "html")
 	assert.Contains(t, r, "nav")
