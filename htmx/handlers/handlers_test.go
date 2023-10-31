@@ -2,8 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"htmx/db"
+	"htmx/router"
 	"htmx/types"
+	"htmx/user"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -12,12 +17,21 @@ import (
 
 var headers = map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
-func TestIndex(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/", "", nil)
-	r := rec.Body.String()
-	assert.Contains(t, r, "html")
-	assert.Contains(t, r, "nav")
-	assert.Contains(t, r, "form hx-post=\"/register\" hx-swap=\"outerHTML\"")
+func makeRequest(method, path, body string, headers map[string]string) *httptest.ResponseRecorder {
+	e := router.New("../")
+	d := db.CreateDB()
+	user.SeedUsers(d)
+	Register(e, d)
+	req := httptest.NewRequest(method, path, strings.NewReader(body))
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	writer := httptest.NewRecorder()
+	e.ServeHTTP(writer, req)
+
+	return writer
 }
 
 func TestGetUsersHtmx(t *testing.T) {

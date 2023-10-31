@@ -2,33 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	"htmx/db"
-	"htmx/router"
-	"htmx/user"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func makeRequest(method, path, body string, headers map[string]string) *httptest.ResponseRecorder {
-	e := router.New("../")
-	d := db.CreateDB()
-	user.SeedUsers(d)
-	Register(e, d)
-	req := httptest.NewRequest(method, path, strings.NewReader(body))
-
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-
-	writer := httptest.NewRecorder()
-	e.ServeHTTP(writer, req)
-
-	return writer
-}
 
 // TODO: Probably just make the rest of the handlers tests hit the endpoints
 // instead of calling the handlers
