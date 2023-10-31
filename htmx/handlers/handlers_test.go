@@ -17,7 +17,7 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/")
+	rec := makeRequest(http.MethodGet, "/", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, r, "html")
 	assert.Contains(t, r, "nav")
@@ -25,14 +25,7 @@ func TestIndex(t *testing.T) {
 }
 
 func TestGetUsersHtmx(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	req := httptest.NewRequest(echo.GET, "/users", strings.NewReader(""))
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.AllUsers(c))
+	rec := makeRequest(http.MethodGet, "/users", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, r, "Alice")
 	assert.Contains(t, r, "Bob")
@@ -40,14 +33,7 @@ func TestGetUsersHtmx(t *testing.T) {
 }
 
 func TestGetUsersJson(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	req := httptest.NewRequest(echo.GET, "/users?format=json", strings.NewReader(""))
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.AllUsers(c))
+	rec := makeRequest(http.MethodGet, "/users?format=json", "", nil)
 	r := rec.Body.Bytes()
 	users := []types.User{}
 	err := json.Unmarshal(r, &users)
@@ -65,15 +51,8 @@ func TestGetUsersJson(t *testing.T) {
 	assert.NotEqual(t, alice.UUID, carl.UUID)
 }
 
-func TestRegisterUserNoInput(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	req := httptest.NewRequest(echo.GET, "/register", strings.NewReader(""))
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.RegisterUser(c))
+func TestRegisterUserNoInputFail(t *testing.T) {
+	rec := makeRequest(http.MethodPost, "/register", "", nil)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -82,18 +61,11 @@ func TestRegisterUserNoInput(t *testing.T) {
 }
 
 func TestRegisterUserExistsFail(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
 	form := url.Values{}
 	form.Add("username", "Alice")
 	form.Add("password", "bar")
-	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.RegisterUser(c))
+	headers := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+	rec := makeRequest(http.MethodPost, "/register", form.Encode(), headers)
 	r := rec.Body.String()
 
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
@@ -109,18 +81,11 @@ func TestRegisterUserExistsFail(t *testing.T) {
 }
 
 func TestRegisterUserValid(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
 	form := url.Values{}
 	form.Add("username", "New User")
 	form.Add("password", "123")
-	req := httptest.NewRequest(echo.POST, "/register", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.RegisterUser(c))
+	headers := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+	rec := makeRequest(http.MethodPost, "/register", form.Encode(), headers)
 	r := rec.Body.String()
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, `uuid=`)

@@ -13,12 +13,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeRequest(method, path string) *httptest.ResponseRecorder {
+func makeRequest(method, path, body string, headers map[string]string) *httptest.ResponseRecorder {
 	e := router.New("../")
 	d := db.CreateDB()
 	user.SeedUsers(d)
 	Register(e, d)
-	req := httptest.NewRequest(method, path, strings.NewReader(""))
+	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	if headers != nil {
+		for k, v := range headers {
+			req.Header.Set(k, v)
+		}
+	}
 	writer := httptest.NewRecorder()
 	e.ServeHTTP(writer, req)
 
@@ -28,7 +33,7 @@ func makeRequest(method, path string) *httptest.ResponseRecorder {
 // TODO: Probably just make the rest of the handlers tests hit the endpoints
 // instead of calling the handlers
 func TestRenderIndex(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/")
+	rec := makeRequest(http.MethodGet, "/", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, r, "html")
 	assert.Contains(t, r, "nav")
@@ -36,7 +41,7 @@ func TestRenderIndex(t *testing.T) {
 }
 
 func TestRenderRegister(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/register")
+	rec := makeRequest(http.MethodGet, "/register", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, r, "html")
 	assert.Contains(t, r, "nav")
@@ -44,7 +49,7 @@ func TestRenderRegister(t *testing.T) {
 }
 
 func TestRenderLogin(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/login")
+	rec := makeRequest(http.MethodGet, "/login", "", nil)
 	r := rec.Body.String()
 	fmt.Println(r)
 	assert.Contains(t, r, "html")
