@@ -2,19 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"htmx/db"
-	"htmx/router"
 	"htmx/types"
-	"htmx/user"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
+
+var headers = map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
 func TestIndex(t *testing.T) {
 	rec := makeRequest(http.MethodGet, "/", "", nil)
@@ -61,11 +57,7 @@ func TestRegisterUserNoInputFail(t *testing.T) {
 }
 
 func TestRegisterUserExistsFail(t *testing.T) {
-	form := url.Values{}
-	form.Add("username", "Alice")
-	form.Add("password", "bar")
-	headers := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-	rec := makeRequest(http.MethodPost, "/register", form.Encode(), headers)
+	rec := makeRequest(http.MethodPost, "/register", "username=alice&password=bar", headers)
 	r := rec.Body.String()
 
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
@@ -81,38 +73,23 @@ func TestRegisterUserExistsFail(t *testing.T) {
 }
 
 func TestRegisterUserValid(t *testing.T) {
-	form := url.Values{}
-	form.Add("username", "New User")
-	form.Add("password", "123")
-	headers := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-	rec := makeRequest(http.MethodPost, "/register", form.Encode(), headers)
+	rec := makeRequest(http.MethodPost, "/register", "username=NewUser&password=123", headers)
 	r := rec.Body.String()
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, `uuid=`)
 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
 	assert.Contains(t, r, `
 <span id="logged-in-as" hx-swap-oob="true">
-  <span>Logged in as New User</span>
+  <span>Logged in as NewUser</span>
   <button hx-post="/logout" class="text-btn">Log out</button>
 </span>`)
-	assert.Contains(t, r, "New User, you're in.")
-	assert.Contains(t, r, "Logged in as New User")
+	assert.Contains(t, r, "NewUser, you're in.")
+	assert.Contains(t, r, "Logged in as NewUser")
 	assert.Contains(t, r, "Log out")
 }
 
 func TestLogin(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	form := url.Values{}
-	form.Add("username", "Alice")
-	form.Add("password", "bar")
-	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Login(c))
+	rec := makeRequest(echo.POST, "/login", "username=Alice&password=bar", headers)
 	r := rec.Body.String()
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, "uuid=")
@@ -132,18 +109,7 @@ func TestLogin(t *testing.T) {
 
 // TODO: convert some of these to user unit tests
 func TestLoginError(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	form := url.Values{}
-	form.Add("username", "Alice")
-	form.Add("password", "wrong-password")
-	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Login(c))
+	rec := makeRequest(echo.POST, "/login", "username=Alice&password=wrong-password", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -152,18 +118,7 @@ func TestLoginError(t *testing.T) {
 }
 
 func TestLoginNoUsernamePassword(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	form := url.Values{}
-	form.Add("username", "")
-	form.Add("password", "")
-	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Login(c))
+	rec := makeRequest(echo.POST, "/login", "username=&password=", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -172,18 +127,7 @@ func TestLoginNoUsernamePassword(t *testing.T) {
 }
 
 func TestLoginNoAccount(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	form := url.Values{}
-	form.Add("username", "Not a user")
-	form.Add("password", "bar")
-	req := httptest.NewRequest(echo.POST, "/login", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Login(c))
+	rec := makeRequest(echo.POST, "/login", "username=Not a user&password=bar", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -192,14 +136,7 @@ func TestLoginNoAccount(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	d := db.CreateDB()
-	h := NewHandlers(d)
-	user.SeedUsers(d)
-	e := router.New("../")
-	req := httptest.NewRequest(echo.POST, "/logout", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	assert.NoError(t, h.Logout(c))
+	rec := makeRequest(echo.POST, "/logout", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=; Max-Age=0; HttpOnly")
 	assert.Contains(t, r, "<h2>Log In</h2>")

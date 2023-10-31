@@ -19,11 +19,11 @@ func makeRequest(method, path, body string, headers map[string]string) *httptest
 	user.SeedUsers(d)
 	Register(e, d)
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
-	if headers != nil {
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
+
 	writer := httptest.NewRecorder()
 	e.ServeHTTP(writer, req)
 
