@@ -30,6 +30,8 @@ func NewUser(username string) *types.User {
 	u := &types.User{}
 	u.Username = username
 	u.UUID = uuid.New()
+	u.Followers = []uuid.UUID{}
+	u.Following = []uuid.UUID{}
 	return u
 }
 
