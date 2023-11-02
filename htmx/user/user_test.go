@@ -22,6 +22,8 @@ func TestSeedUsers(t *testing.T) {
 	assert.NotEqual(t, alice.UUID, bob.UUID)
 	assert.NotEqual(t, bob.UUID, carl.UUID)
 	assert.NotEqual(t, alice.UUID, carl.UUID)
+
+	assert.Equal(t, alice.Following, []string{bob.UUID.String(), carl.UUID.String()})
 }
 
 func TestLoginSuccess(t *testing.T) {

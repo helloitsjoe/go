@@ -7,10 +7,12 @@ import "github.com/google/uuid"
 // 	Password string `form:"password"`
 // }
 
+// UUIDs need to be converted to strings for memdb,
+// otherwise schema gives a length mismatch error
 type User struct {
 	Username  string
-	Followers []uuid.UUID
-	Following []uuid.UUID
+	Followers []string
+	Following []string
 	// LikedPosts []uuid.UUID
 	// Posts      []Post
 	UUID uuid.UUID

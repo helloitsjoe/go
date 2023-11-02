@@ -30,18 +30,29 @@ func NewUser(username string) *types.User {
 	u := &types.User{}
 	u.Username = username
 	u.UUID = uuid.New()
-	u.Followers = []uuid.UUID{}
-	u.Following = []uuid.UUID{}
+	u.Followers = []string{}
+	u.Following = []string{}
 	return u
 }
 
-func SeedUsers(db db.DB) {
+func SeedUsers(d db.DB) {
 	u := [3]string{"Alice", "Bob", "Carl"}
+	newUsers := []*types.User{}
 
 	for _, name := range u {
 		n := NewUser(name)
 		p := hashPassword("bar")
-		db.InsertUser(n.Username, p, n.UUID)
+		newUsers = append(newUsers, n)
+		d.InsertUser(n.Username, p, n.UUID)
+	}
+
+	// TODO: Convert all UUIDs to strings at creation time
+	for _, follower := range newUsers {
+		for _, followee := range newUsers {
+			if follower.Username != followee.Username {
+				d.FollowUser(follower.UUID, followee.UUID)
+			}
+		}
 	}
 }
 

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"errors"
 	"htmx/types"
 
 	"github.com/google/uuid"
@@ -16,7 +16,7 @@ func toUser(u user) types.User {
 }
 
 func (d MemDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	u := user{username, hashedPassword, []uuid.UUID{}, []uuid.UUID{}, id.String()}
+	u := user{username, hashedPassword, []string{}, []string{}, id.String()}
 	txn := d.db.Txn(true)
 	if err := txn.Insert("users", u); err != nil {
 		panic(err)
@@ -30,8 +30,6 @@ func (d MemDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UU
 func (db MemDB) FindUser(id uuid.UUID) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	all := db.GetAllUsers()
-	fmt.Println(all)
 	u, err := txn.First("users", "id", id.String())
 	if err != nil {
 		panic(err)
@@ -51,8 +49,6 @@ func (db MemDB) FindUser(id uuid.UUID) (*types.User, string) {
 func (db MemDB) FindUserByName(name string) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	all := db.GetAllUsers()
-	fmt.Println(all)
 	u, err := txn.First("users", "username", name)
 	if err != nil {
 		panic(err)
@@ -87,12 +83,27 @@ func (db MemDB) GetAllUsers() []types.User {
 	return u
 }
 
-func (db MemDB) FollowUser(follower, followee uuid.UUID) {
+func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
 	txn := db.db.Txn(true)
 	defer txn.Abort()
-	u, _ := db.FindUser(follower)
-	u.Following = append(u.Following, followee)
-	if err := txn.Insert("users", u); err != nil {
+	u, err := txn.First("users", "id", followerId.String())
+	if err != nil {
+		panic(err)
+	}
+
+	if u == nil {
+		panic(errors.New("User not found"))
+	}
+
+	// TODO: MemDB Generics?
+	found := u.(user)
+
+	// TODO: Add follower to followee's followers
+	// TODO: Add check for already following
+	// TODO: Add check for self-following
+	// TODO: Add check for followee not found
+	found.Following = append(found.Following, followeeId.String())
+	if err := txn.Insert("users", found); err != nil {
 		panic(err)
 	}
 	txn.Commit()

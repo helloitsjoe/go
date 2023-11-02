@@ -12,13 +12,16 @@ type DB interface {
 	FindUser(id uuid.UUID) (*types.User, string)
 	FindUserByName(name string) (*types.User, string)
 	GetAllUsers() []types.User
+	FollowUser(follower, followee uuid.UUID)
 }
 
+// UUIDs need to be converted to strings for memdb,
+// otherwise schema gives a length mismatch error
 type user struct {
 	Username  string
 	Password  string
-	Followers []uuid.UUID
-	Following []uuid.UUID
+	Followers []string
+	Following []string
 	UUID      string
 }
 
