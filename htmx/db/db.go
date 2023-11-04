@@ -15,6 +15,7 @@ type DB interface {
 	FollowUser(follower, followee uuid.UUID)
 	IsFollowing(follower, followee uuid.UUID) bool
 	GetFollowers(followers []string) []*types.User
+	GetFollowing(following []string) []*types.User
 }
 
 // UUIDs need to be converted to strings for memdb,

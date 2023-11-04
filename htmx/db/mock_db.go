@@ -60,3 +60,7 @@ func (d MockDB) IsFollowing(follower, followee uuid.UUID) bool {
 func (d MockDB) GetFollowers(followers []string) []*types.User {
 	panic("not implemented")
 }
+
+func (d MockDB) GetFollowing(following []string) []*types.User {
+	panic("not implemented")
+}

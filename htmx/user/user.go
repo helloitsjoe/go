@@ -118,3 +118,7 @@ func Follow(db db.DB, a, b uuid.UUID) {
 func GetFollowers(db db.DB, followers []string) []*types.User {
 	return db.GetFollowers(followers)
 }
+
+func GetFollowing(db db.DB, following []string) []*types.User {
+	return db.GetFollowing(following)
+}

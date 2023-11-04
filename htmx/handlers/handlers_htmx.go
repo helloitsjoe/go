@@ -154,17 +154,30 @@ func (h Handlers) Logout(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
 }
 
-func (h Handlers) MyFollowers(c echo.Context) error {
-	fmt.Println("HERE?")
+func (h Handlers) RenderFollowers(c echo.Context) error {
 	id, ok := c.Get("uuid").(string)
 	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
-
-	fmt.Println("isLoggedIn", isLoggedIn)
 
 	if isLoggedIn {
 		followers := user.GetFollowers(h.db, loggedInUser.Followers)
 		data := ctx{"User": loggedInUser, "Followers": followers}
 		return c.Render(http.StatusOK, "followers.html", data)
+	}
+	// TODO: DRY
+	c.Response().Header().Set("HX-Redirect", "/")
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+}
+
+func (h Handlers) RenderFollowing(c echo.Context) error {
+	// TODO: Pass user from auth
+	id, ok := c.Get("uuid").(string)
+	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+
+	if isLoggedIn {
+		following := user.GetFollowing(h.db, loggedInUser.Followers)
+		data := ctx{"User": loggedInUser, "Following": following}
+		return c.Render(http.StatusOK, "following.html", data)
 	}
 	c.Response().Header().Set("HX-Redirect", "/")
 	users := h.db.GetAllUsers()

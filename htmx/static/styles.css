@@ -14,6 +14,10 @@ h1 {
   margin: 1em 0;
 }
 
+ul {
+  list-style: none;
+}
+
 button {
   border: 1px solid var(--primary);
   background: none;
@@ -60,6 +64,9 @@ input {
 .home-container {
   display: flex;
   gap: 1em;
+  width: 100%;
+  justify-content: center;
+  /* max-width: 800px; */
   /* height: 100vh; */
 }
 
@@ -67,18 +74,24 @@ input {
 .home-followers {
   border: 1px solid var(--primary);
   border-radius: 5px;
-  width: 20%
+  width: 40%;
+  padding: 1em;
+  margin: 1em;
 }
 
 
 .main {
-  margin: 1em;
+  margin: 1em auto;
   max-width: 800px;
   background: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.center {
+  text-align: center;
 }
 
 .form {

@@ -144,4 +144,13 @@ func (db MemDB) GetFollowers(followerIds []string) []*types.User {
 	return f
 }
 
+func (db MemDB) GetFollowing(followingIds []string) []*types.User {
+	f := []*types.User{}
+	for _, followingId := range followingIds {
+		following, _ := db.FindUser(followingId)
+		f = append(f, following)
+	}
+	return f
+}
+
 // TODO: Unfollow user
