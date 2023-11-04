@@ -47,20 +47,19 @@ func SeedUsers(d db.DB) {
 	}
 
 	// TODO: Convert all UUIDs to strings at creation time
-	for _, follower := range newUsers {
-		for _, followee := range newUsers {
-			if follower.Username != followee.Username {
-				d.FollowUser(follower.UUID, followee.UUID)
-			}
-		}
-	}
+	alice, bob, carl := newUsers[0], newUsers[1], newUsers[2]
+
+	d.FollowUser(alice.UUID, bob.UUID)
+	d.FollowUser(bob.UUID, alice.UUID)
+	d.FollowUser(carl.UUID, alice.UUID)
 }
 
-func AddUser(db db.DB, name, password string, users []types.User) (*types.User, error) {
+func AddUser(db db.DB, name, password string) (*types.User, error) {
 	u := NewUser(name)
 
 	// MemDB doesn't enforce uniqueness, so we have to check manually before
 	// insesrting: https://github.com/hashicorp/go-memdb/issues/7
+	users := db.GetAllUsers()
 	for _, u := range users {
 		if strings.EqualFold(u.Username, name) {
 			return nil, errors.New("That username is already taken")
@@ -104,4 +103,14 @@ func GetUsers(db db.DB) []types.User {
 	users := db.GetAllUsers()
 
 	return users
+}
+
+func Follow(db db.DB, a, b uuid.UUID) {
+	if a == b {
+		return
+	}
+	if db.IsFollowing(a, b) {
+		return
+	}
+	db.FollowUser(a, b)
 }

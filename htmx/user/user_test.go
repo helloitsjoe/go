@@ -23,7 +23,76 @@ func TestSeedUsers(t *testing.T) {
 	assert.NotEqual(t, bob.UUID, carl.UUID)
 	assert.NotEqual(t, alice.UUID, carl.UUID)
 
-	assert.Equal(t, alice.Following, []string{bob.UUID.String(), carl.UUID.String()})
+}
+
+func TestFollowUser(t *testing.T) {
+	d := db.CreateDB()
+	a, _ := AddUser(d, "Alice", "bar")
+	b, _ := AddUser(d, "Bob", "bar")
+	c, _ := AddUser(d, "Carl", "bar")
+
+	Follow(d, a.UUID, b.UUID)
+	Follow(d, b.UUID, a.UUID)
+	Follow(d, c.UUID, a.UUID)
+
+	alice, _ := d.FindUser(a.UUID)
+	bob, _ := d.FindUser(b.UUID)
+	carl, _ := d.FindUser(c.UUID)
+
+	assert.Equal(t, alice.Following, []string{bob.UUID.String()})
+	assert.Equal(t, alice.Followers, []string{bob.UUID.String(), carl.UUID.String()})
+	assert.Equal(t, bob.Following, []string{alice.UUID.String()})
+	assert.Equal(t, bob.Followers, []string{alice.UUID.String()})
+	assert.Equal(t, carl.Following, []string{alice.UUID.String()})
+	assert.Equal(t, carl.Followers, []string{})
+}
+
+func TestFollowSelfFail(t *testing.T) {
+	d := db.CreateDB()
+	a, _ := AddUser(d, "Alice", "bar")
+
+	Follow(d, a.UUID, a.UUID)
+
+	alice, _ := d.FindUser(a.UUID)
+
+	assert.Equal(t, alice.Following, []string{})
+	assert.Equal(t, alice.Followers, []string{})
+}
+
+func TestAlreadyFollowingFail(t *testing.T) {
+	d := db.CreateDB()
+	a, _ := AddUser(d, "Alice", "bar")
+	b, _ := AddUser(d, "Bill", "bar")
+
+	Follow(d, a.UUID, b.UUID)
+
+	alice, _ := d.FindUser(a.UUID)
+	bill, _ := d.FindUser(b.UUID)
+
+	assert.Equal(t, alice.Following, []string{b.UUID.String()})
+	assert.Equal(t, bill.Followers, []string{a.UUID.String()})
+
+	Follow(d, a.UUID, b.UUID)
+
+	alice, _ = d.FindUser(a.UUID)
+	bill, _ = d.FindUser(b.UUID)
+
+	assert.Equal(t, alice.Following, []string{b.UUID.String()})
+	assert.Equal(t, bill.Followers, []string{a.UUID.String()})
+}
+
+func TestNotFoundPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Follow should have panicked but did not")
+		}
+	}()
+
+	d := db.CreateDB()
+	a, _ := AddUser(d, "Alice", "bar")
+	b := NewUser("Bill") // Not added to DB
+
+	Follow(d, a.UUID, b.UUID)
 }
 
 func TestLoginSuccess(t *testing.T) {

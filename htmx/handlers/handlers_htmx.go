@@ -78,7 +78,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	password := c.Request().FormValue("password")
 
 	users := user.GetUsers(h.db)
-	newUser, err := user.AddUser(h.db, username, password, users)
+	newUser, err := user.AddUser(h.db, username, password)
 
 	if err != nil {
 		if err.Error() == "Bad request" {

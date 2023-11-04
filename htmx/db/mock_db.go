@@ -52,3 +52,7 @@ func (d MockDB) FindUserByName(name string) (*types.User, string) {
 func (d MockDB) FollowUser(follower, followee uuid.UUID) {
 	panic("not implemented")
 }
+
+func (d MockDB) IsFollowing(follower, followee uuid.UUID) bool {
+	panic("not implemented")
+}

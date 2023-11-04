@@ -5,6 +5,7 @@ import (
 	"htmx/types"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-memdb"
 )
 
 func toUser(u user) types.User {
@@ -83,10 +84,8 @@ func (db MemDB) GetAllUsers() []types.User {
 	return u
 }
 
-func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
-	txn := db.db.Txn(true)
-	defer txn.Abort()
-	u, err := txn.First("users", "id", followerId.String())
+func findUser(txn *memdb.Txn, id string) user {
+	u, err := txn.First("users", "id", id)
 	if err != nil {
 		panic(err)
 	}
@@ -96,15 +95,44 @@ func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
 	}
 
 	// TODO: MemDB Generics?
-	found := u.(user)
+	return u.(user)
+}
 
-	// TODO: Add follower to followee's followers
-	// TODO: Add check for already following
-	// TODO: Add check for self-following
-	// TODO: Add check for followee not found
-	found.Following = append(found.Following, followeeId.String())
-	if err := txn.Insert("users", found); err != nil {
+func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
+	txn := db.db.Txn(true)
+	defer txn.Abort()
+	follower := findUser(txn, followerId.String())
+	followee := findUser(txn, followeeId.String())
+
+	// TODO: Separate table for followers/following?
+	follower.Following = append(follower.Following, followeeId.String())
+	followee.Followers = append(followee.Followers, followerId.String())
+	if err := txn.Insert("users", follower); err != nil {
+		panic(err)
+	}
+	if err := txn.Insert("users", followee); err != nil {
 		panic(err)
 	}
 	txn.Commit()
 }
+
+func (db MemDB) IsFollowing(followerId, followeeId uuid.UUID) bool {
+	txn := db.db.Txn(false)
+	defer txn.Abort()
+	follower := findUser(txn, followerId.String())
+	followee := findUser(txn, followeeId.String())
+
+	for _, f := range follower.Following {
+		if f == followeeId.String() {
+			return true
+		}
+	}
+	for _, f := range followee.Followers {
+		if f == followerId.String() {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO: Unfollow user

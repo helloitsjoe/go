@@ -13,6 +13,7 @@ type DB interface {
 	FindUserByName(name string) (*types.User, string)
 	GetAllUsers() []types.User
 	FollowUser(follower, followee uuid.UUID)
+	IsFollowing(follower, followee uuid.UUID) bool
 }
 
 // UUIDs need to be converted to strings for memdb,
