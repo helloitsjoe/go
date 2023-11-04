@@ -57,6 +57,19 @@ input {
   display: inline-block;
 }
 
+.home-container {
+  display: flex;
+  gap: 1em;
+  /* height: 100vh; */
+}
+
+.home-following,
+.home-followers {
+  border: 1px solid var(--primary);
+  border-radius: 5px;
+  width: 20%
+}
+
 
 .main {
   margin: 1em;

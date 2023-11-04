@@ -30,8 +30,8 @@ func (d MockDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.U
 	return id
 }
 
-func (d MockDB) FindUser(id uuid.UUID) (*types.User, string) {
-	foundUser, ok := d.users[id.String()]
+func (d MockDB) FindUser(id string) (*types.User, string) {
+	foundUser, ok := d.users[id]
 	if !ok {
 		return nil, ""
 	}
@@ -54,5 +54,9 @@ func (d MockDB) FollowUser(follower, followee uuid.UUID) {
 }
 
 func (d MockDB) IsFollowing(follower, followee uuid.UUID) bool {
+	panic("not implemented")
+}
+
+func (d MockDB) GetFollowers(followers []string) []*types.User {
 	panic("not implemented")
 }

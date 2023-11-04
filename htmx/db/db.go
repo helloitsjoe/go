@@ -9,11 +9,12 @@ import (
 
 type DB interface {
 	InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID
-	FindUser(id uuid.UUID) (*types.User, string)
+	FindUser(id string) (*types.User, string)
 	FindUserByName(name string) (*types.User, string)
 	GetAllUsers() []types.User
 	FollowUser(follower, followee uuid.UUID)
 	IsFollowing(follower, followee uuid.UUID) bool
+	GetFollowers(followers []string) []*types.User
 }
 
 // UUIDs need to be converted to strings for memdb,

@@ -28,10 +28,10 @@ func (d MemDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UU
 	return id
 }
 
-func (db MemDB) FindUser(id uuid.UUID) (*types.User, string) {
+func (db MemDB) FindUser(id string) (*types.User, string) {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	u, err := txn.First("users", "id", id.String())
+	u, err := txn.First("users", "id", id)
 	if err != nil {
 		panic(err)
 	}
@@ -133,6 +133,15 @@ func (db MemDB) IsFollowing(followerId, followeeId uuid.UUID) bool {
 		}
 	}
 	return false
+}
+
+func (db MemDB) GetFollowers(followerIds []string) []*types.User {
+	f := []*types.User{}
+	for _, followerId := range followerIds {
+		follower, _ := db.FindUser(followerId)
+		f = append(f, follower)
+	}
+	return f
 }
 
 // TODO: Unfollow user

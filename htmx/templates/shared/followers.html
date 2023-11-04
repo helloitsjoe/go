@@ -1,0 +1,12 @@
+{{ define "followers" }}
+<div class="home-followers">
+  <h3>Followers</h3>
+  <ul>
+    {{ range .Followers }}
+      <li>{{ .Username }}</li>
+    {{ end }}
+  </ul>
+</div>
+{{ end }}
+
+{{ template "followers" . }}
