@@ -35,9 +35,9 @@ func TestFollowUser(t *testing.T) {
 	Follow(d, b.UUID, a.UUID)
 	Follow(d, c.UUID, a.UUID)
 
-	alice, _ := d.FindUser(a.UUID)
-	bob, _ := d.FindUser(b.UUID)
-	carl, _ := d.FindUser(c.UUID)
+	alice, _ := d.FindUser(a.UUID.String())
+	bob, _ := d.FindUser(b.UUID.String())
+	carl, _ := d.FindUser(c.UUID.String())
 
 	assert.Equal(t, alice.Following, []string{bob.UUID.String()})
 	assert.Equal(t, alice.Followers, []string{bob.UUID.String(), carl.UUID.String()})
@@ -53,7 +53,7 @@ func TestFollowSelfFail(t *testing.T) {
 
 	Follow(d, a.UUID, a.UUID)
 
-	alice, _ := d.FindUser(a.UUID)
+	alice, _ := d.FindUser(a.UUID.String())
 
 	assert.Equal(t, alice.Following, []string{})
 	assert.Equal(t, alice.Followers, []string{})
@@ -66,16 +66,16 @@ func TestAlreadyFollowingFail(t *testing.T) {
 
 	Follow(d, a.UUID, b.UUID)
 
-	alice, _ := d.FindUser(a.UUID)
-	bill, _ := d.FindUser(b.UUID)
+	alice, _ := d.FindUser(a.UUID.String())
+	bill, _ := d.FindUser(b.UUID.String())
 
 	assert.Equal(t, alice.Following, []string{b.UUID.String()})
 	assert.Equal(t, bill.Followers, []string{a.UUID.String()})
 
 	Follow(d, a.UUID, b.UUID)
 
-	alice, _ = d.FindUser(a.UUID)
-	bill, _ = d.FindUser(b.UUID)
+	alice, _ = d.FindUser(a.UUID.String())
+	bill, _ = d.FindUser(b.UUID.String())
 
 	assert.Equal(t, alice.Following, []string{b.UUID.String()})
 	assert.Equal(t, bill.Followers, []string{a.UUID.String()})

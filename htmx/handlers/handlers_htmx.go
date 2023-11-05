@@ -175,7 +175,7 @@ func (h Handlers) RenderFollowing(c echo.Context) error {
 	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
 
 	if isLoggedIn {
-		following := user.GetFollowing(h.db, loggedInUser.Followers)
+		following := user.GetFollowing(h.db, loggedInUser.Following)
 		data := ctx{"User": loggedInUser, "Following": following}
 		return c.Render(http.StatusOK, "following.html", data)
 	}
