@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,11 +28,7 @@ func checkLoggedIn(id string, idExists bool, db db.DB) (*types.User, bool) {
 		return nil, false
 	}
 
-	u, err := uuid.Parse(id)
-	if err != nil {
-		panic(err)
-	}
-	validUser, _ := db.FindUser(u)
+	validUser, _ := db.FindUser(id)
 
 	if validUser != nil {
 		return validUser, true
@@ -59,10 +54,11 @@ func getSleep(reqSleep string) time.Duration {
 
 func (h Handlers) Index(c echo.Context) error {
 	id, ok := c.Get("uuid").(string)
-	loggedInUser, exists := checkLoggedIn(id, ok, h.db)
+	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
 	users := h.db.GetAllUsers()
 
-	if exists {
+	if isLoggedIn {
+		fmt.Println(loggedInUser.Followers)
 		data := ctx{"Users": users, "User": loggedInUser}
 		return c.Render(http.StatusOK, "index.html", data)
 	}
@@ -78,7 +74,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	password := c.Request().FormValue("password")
 
 	users := user.GetUsers(h.db)
-	newUser, err := user.AddUser(h.db, username, password, users)
+	newUser, err := user.AddUser(h.db, username, password)
 
 	if err != nil {
 		if err.Error() == "Bad request" {
@@ -153,6 +149,36 @@ func (h Handlers) About(c echo.Context) error {
 
 func (h Handlers) Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{Name: "uuid", Value: "", HttpOnly: true, MaxAge: -1})
+	c.Response().Header().Set("HX-Redirect", "/")
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+}
+
+func (h Handlers) RenderFollowers(c echo.Context) error {
+	id, ok := c.Get("uuid").(string)
+	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+
+	if isLoggedIn {
+		followers := user.GetFollowers(h.db, loggedInUser.Followers)
+		data := ctx{"User": loggedInUser, "Followers": followers}
+		return c.Render(http.StatusOK, "followers.html", data)
+	}
+	// TODO: DRY
+	c.Response().Header().Set("HX-Redirect", "/")
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+}
+
+func (h Handlers) RenderFollowing(c echo.Context) error {
+	// TODO: Pass user from auth
+	id, ok := c.Get("uuid").(string)
+	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+
+	if isLoggedIn {
+		following := user.GetFollowing(h.db, loggedInUser.Following)
+		data := ctx{"User": loggedInUser, "Following": following}
+		return c.Render(http.StatusOK, "following.html", data)
+	}
 	c.Response().Header().Set("HX-Redirect", "/")
 	users := h.db.GetAllUsers()
 	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})

@@ -1,0 +1,12 @@
+{{ define "following" }}
+<div class="home-following">
+  <h3 class="center">Following</h3>
+  <ul>
+    {{ range .Following }}
+      <li>{{ .Username }}</li>
+    {{ end }}
+  </ul>
+</div>
+{{ end }}
+
+{{ template "following" . }}

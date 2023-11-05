@@ -8,9 +8,13 @@
 <div id="error" hx-swap-oob="true"></div>
 
 {{ define "logged-in" }}
-<div class="main">
-  {{ .User.Username }}, you're in.
-</div>
+<!-- <div> -->
+  <h2>Hello there {{ .User.Username }}</h2>
+  <div class="home-container">
+    <div class="home-followers" hx-get="/followers" hx-trigger="load" hx-swap="outerHTML">Loading</div>
+    <div class="home-following" hx-get="/following" hx-trigger="load" hx-swap="outerHTML">Loading</div>
+  </div>
+<!-- </div> -->
 <button hx-get="/users" hx-target="#users">
   Get other users
 </button>

@@ -26,12 +26,12 @@ func (d MockDB) GetAllUsers() []types.User {
 }
 
 func (d MockDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	d.users[id.String()] = user{username, hashedPassword, id.String()}
+	d.users[id.String()] = user{username, hashedPassword, []string{}, []string{}, id.String()}
 	return id
 }
 
-func (d MockDB) FindUser(id uuid.UUID) (*types.User, string) {
-	foundUser, ok := d.users[id.String()]
+func (d MockDB) FindUser(id string) (*types.User, string) {
+	foundUser, ok := d.users[id]
 	if !ok {
 		return nil, ""
 	}
@@ -47,4 +47,20 @@ func (d MockDB) FindUserByName(name string) (*types.User, string) {
 		}
 	}
 	return nil, ""
+}
+
+func (d MockDB) FollowUser(follower, followee uuid.UUID) {
+	panic("not implemented")
+}
+
+func (d MockDB) IsFollowing(follower, followee uuid.UUID) bool {
+	panic("not implemented")
+}
+
+func (d MockDB) GetFollowers(followers []string) []*types.User {
+	panic("not implemented")
+}
+
+func (d MockDB) GetFollowing(following []string) []*types.User {
+	panic("not implemented")
 }

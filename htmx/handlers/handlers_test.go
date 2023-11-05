@@ -82,7 +82,7 @@ func TestRegisterUserExistsFail(t *testing.T) {
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.NotContains(t, cookie, `uuid=`)
 
-	assert.NotContains(t, r, "Alice, you're in.")
+	assert.NotContains(t, r, "Hello there Alice")
 	assert.NotContains(t, r, "Log out")
 }
 
@@ -97,8 +97,7 @@ func TestRegisterUserValid(t *testing.T) {
   <span>Logged in as NewUser</span>
   <button hx-post="/logout" class="text-btn">Log out</button>
 </span>`)
-	assert.Contains(t, r, "NewUser, you're in.")
-	assert.Contains(t, r, "Logged in as NewUser")
+	assert.Contains(t, r, "Hello there NewUser")
 	assert.Contains(t, r, "Log out")
 }
 
@@ -116,9 +115,9 @@ func TestLogin(t *testing.T) {
 </span>`)
 	// Clear error on a successful login
 	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
-	assert.Contains(t, r, "Alice, you're in.")
-	assert.Contains(t, r, "Logged in as Alice")
+	assert.Contains(t, r, "Hello there Alice")
 	assert.Contains(t, r, "Log out")
+	// TODO: Test for followers/following
 }
 
 // TODO: convert some of these to user unit tests
@@ -154,6 +153,6 @@ func TestLogout(t *testing.T) {
 	r := rec.Body.String()
 	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=; Max-Age=0; HttpOnly")
 	assert.Contains(t, r, "<h2>Log In</h2>")
-	assert.NotContains(t, r, "Logged in as")
+	assert.NotContains(t, r, "Hello there")
 	assert.NotContains(t, r, "Log out")
 }
