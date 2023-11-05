@@ -17,7 +17,7 @@ import (
 
 var headers = map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
-func makeRequest(method, path, body string, headers map[string]string) *httptest.ResponseRecorder {
+func makeRequest(method, path, body string, headers map[string]string) (*httptest.ResponseRecorder, *echo.Echo) {
 	e := router.New("../")
 	d := db.CreateDB()
 	user.SeedUsers(d)
@@ -31,11 +31,11 @@ func makeRequest(method, path, body string, headers map[string]string) *httptest
 	writer := httptest.NewRecorder()
 	e.ServeHTTP(writer, req)
 
-	return writer
+	return writer, e
 }
 
 func TestGetUsersHtmx(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/users", "", nil)
+	rec, _ := makeRequest(http.MethodGet, "/users", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, r, "Alice")
 	assert.Contains(t, r, "Bob")
@@ -43,7 +43,7 @@ func TestGetUsersHtmx(t *testing.T) {
 }
 
 func TestGetUsersJson(t *testing.T) {
-	rec := makeRequest(http.MethodGet, "/users?format=json", "", nil)
+	rec, _ := makeRequest(http.MethodGet, "/users?format=json", "", nil)
 	r := rec.Body.Bytes()
 	users := []types.User{}
 	err := json.Unmarshal(r, &users)
@@ -62,7 +62,7 @@ func TestGetUsersJson(t *testing.T) {
 }
 
 func TestRegisterUserNoInputFail(t *testing.T) {
-	rec := makeRequest(http.MethodPost, "/register", "", nil)
+	rec, _ := makeRequest(http.MethodPost, "/register", "", nil)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -71,7 +71,7 @@ func TestRegisterUserNoInputFail(t *testing.T) {
 }
 
 func TestRegisterUserExistsFail(t *testing.T) {
-	rec := makeRequest(http.MethodPost, "/register", "username=alice&password=bar", headers)
+	rec, _ := makeRequest(http.MethodPost, "/register", "username=alice&password=bar", headers)
 	r := rec.Body.String()
 
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
@@ -87,7 +87,7 @@ func TestRegisterUserExistsFail(t *testing.T) {
 }
 
 func TestRegisterUserValid(t *testing.T) {
-	rec := makeRequest(http.MethodPost, "/register", "username=NewUser&password=123", headers)
+	rec, _ := makeRequest(http.MethodPost, "/register", "username=NewUser&password=123", headers)
 	r := rec.Body.String()
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, `uuid=`)
@@ -102,7 +102,7 @@ func TestRegisterUserValid(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	rec := makeRequest(echo.POST, "/login", "username=Alice&password=bar", headers)
+	rec, _ := makeRequest(echo.POST, "/login", "username=Alice&password=bar", headers)
 	r := rec.Body.String()
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.Contains(t, cookie, "uuid=")
@@ -117,12 +117,11 @@ func TestLogin(t *testing.T) {
 	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
 	assert.Contains(t, r, "Hello there Alice")
 	assert.Contains(t, r, "Log out")
-	// TODO: Test for followers/following
 }
 
 // TODO: convert some of these to user unit tests
 func TestLoginError(t *testing.T) {
-	rec := makeRequest(echo.POST, "/login", "username=Alice&password=wrong-password", headers)
+	rec, _ := makeRequest(echo.POST, "/login", "username=Alice&password=wrong-password", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -131,7 +130,7 @@ func TestLoginError(t *testing.T) {
 }
 
 func TestLoginNoUsernamePassword(t *testing.T) {
-	rec := makeRequest(echo.POST, "/login", "username=&password=", headers)
+	rec, _ := makeRequest(echo.POST, "/login", "username=&password=", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -140,7 +139,7 @@ func TestLoginNoUsernamePassword(t *testing.T) {
 }
 
 func TestLoginNoAccount(t *testing.T) {
-	rec := makeRequest(echo.POST, "/login", "username=Not a user&password=bar", headers)
+	rec, _ := makeRequest(echo.POST, "/login", "username=Not a user&password=bar", headers)
 	r := rec.Body.String()
 	assert.Equal(t, rec.Header().Get("HX-Retarget"), "#error")
 	assert.Equal(t, rec.Header().Get("HX-Reswap"), "innerHTML")
@@ -149,7 +148,7 @@ func TestLoginNoAccount(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	rec := makeRequest(echo.POST, "/logout", "", nil)
+	rec, _ := makeRequest(echo.POST, "/logout", "", nil)
 	r := rec.Body.String()
 	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=; Max-Age=0; HttpOnly")
 	assert.Contains(t, r, "<h2>Log In</h2>")

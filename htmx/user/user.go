@@ -52,6 +52,7 @@ func SeedUsers(d db.DB) {
 	d.FollowUser(alice.UUID, bob.UUID)
 	d.FollowUser(bob.UUID, alice.UUID)
 	d.FollowUser(carl.UUID, alice.UUID)
+	fmt.Println("Alice", alice)
 }
 
 func AddUser(db db.DB, name, password string) (*types.User, error) {

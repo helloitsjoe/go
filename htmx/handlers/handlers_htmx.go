@@ -161,6 +161,8 @@ func (h Handlers) RenderFollowers(c echo.Context) error {
 	if isLoggedIn {
 		followers := user.GetFollowers(h.db, loggedInUser.Followers)
 		data := ctx{"User": loggedInUser, "Followers": followers}
+
+		fmt.Println("data", data)
 		return c.Render(http.StatusOK, "followers.html", data)
 	}
 	// TODO: DRY

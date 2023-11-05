@@ -2,11 +2,13 @@
 <div class="home-followers">
   <h3 class="center">Followers</h3>
   <ul>
-    {{ range .Followers }}
-      <li>{{ .Username }}</li>
-    {{ end }}
+    {{- range .Followers }}
+    <li>{{- .Username }}</li>
+    {{- end }}
   </ul>
 </div>
 {{ end }}
 
 {{ template "followers" . }}
+
+
