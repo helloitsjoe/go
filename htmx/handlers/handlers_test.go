@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"htmx/db"
 	"htmx/router"
 	"htmx/types"
@@ -16,6 +17,8 @@ import (
 )
 
 var headers = map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+
+// TODO: makeInitialRequest/makeFollowUpRequest
 
 func makeRequest(method, path, body string, headers map[string]string) (*httptest.ResponseRecorder, *echo.Echo) {
 	e := router.New("../")
@@ -32,6 +35,17 @@ func makeRequest(method, path, body string, headers map[string]string) (*httptes
 	e.ServeHTTP(writer, req)
 
 	return writer, e
+}
+
+func login() (*httptest.ResponseRecorder, *echo.Echo, string) {
+	rec, e := makeRequest(http.MethodPost, "/login", "username=Alice&password=bar", headers)
+
+	c := rec.Header().Get("Set-Cookie")
+	cookie := strings.Split(c, ";")[0]
+	cookieVal := strings.Split(cookie, "=")[1]
+	loginCookie := fmt.Sprintf("uuid=%s", cookieVal)
+
+	return rec, e, loginCookie
 }
 
 func TestGetUsersHtmx(t *testing.T) {

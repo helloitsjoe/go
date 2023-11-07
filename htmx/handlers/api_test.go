@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,16 +36,9 @@ func TestRenderLogin(t *testing.T) {
 }
 
 func TestRenderFollowers(t *testing.T) {
-	loginRec, e := makeRequest(echo.POST, "/login", "username=Alice&password=bar", headers)
-	c := loginRec.Header().Get("Set-Cookie")
-	cookie := strings.Split(c, ";")[0]
-	cookieVal := strings.Split(cookie, "=")[1]
-
-	assert.NotZero(t, cookieVal)
-
+	_, e, loginCookie := login()
 	req := httptest.NewRequest(http.MethodGet, "/followers", strings.NewReader(""))
-	cookieHeader := fmt.Sprintf("uuid=%s", cookieVal)
-	req.Header.Set("Cookie", cookieHeader)
+	req.Header.Set("Cookie", loginCookie)
 
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -60,16 +52,9 @@ func TestRenderFollowers(t *testing.T) {
 }
 
 func TestRenderFollowing(t *testing.T) {
-	loginRec, e := makeRequest(echo.POST, "/login", "username=Alice&password=bar", headers)
-	c := loginRec.Header().Get("Set-Cookie")
-	cookie := strings.Split(c, ";")[0]
-	cookieVal := strings.Split(cookie, "=")[1]
-
-	assert.NotZero(t, cookieVal)
-
+	_, e, loginCookie := login()
 	req := httptest.NewRequest(http.MethodGet, "/following", strings.NewReader(""))
-	cookieHeader := fmt.Sprintf("uuid=%s", cookieVal)
-	req.Header.Set("Cookie", cookieHeader)
+	req.Header.Set("Cookie", loginCookie)
 
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
