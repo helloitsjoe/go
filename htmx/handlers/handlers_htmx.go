@@ -38,6 +38,12 @@ func getSleep(reqSleep string) time.Duration {
 	return time.Duration(sleep)
 }
 
+func (h Handlers) redirectHome(c echo.Context) error {
+	c.Response().Header().Set("HX-Redirect", "/")
+	users := h.db.GetAllUsers()
+	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+}
+
 func (h Handlers) Index(c echo.Context) error {
 	loggedInUser, ok := c.Get("user").(*types.User)
 	users := h.db.GetAllUsers()
@@ -135,9 +141,7 @@ func (h Handlers) About(c echo.Context) error {
 
 func (h Handlers) Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{Name: "uuid", Value: "", HttpOnly: true, MaxAge: -1})
-	c.Response().Header().Set("HX-Redirect", "/")
-	users := h.db.GetAllUsers()
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+	return h.redirectHome(c)
 }
 
 func (h Handlers) RenderFollowers(c echo.Context) error {
@@ -150,10 +154,7 @@ func (h Handlers) RenderFollowers(c echo.Context) error {
 		fmt.Println("data", data)
 		return c.Render(http.StatusOK, "followers.html", data)
 	}
-	// TODO: DRY
-	c.Response().Header().Set("HX-Redirect", "/")
-	users := h.db.GetAllUsers()
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+	return h.redirectHome(c)
 }
 
 func (h Handlers) RenderFollowing(c echo.Context) error {
@@ -164,7 +165,5 @@ func (h Handlers) RenderFollowing(c echo.Context) error {
 		data := ctx{"User": loggedInUser, "Following": following}
 		return c.Render(http.StatusOK, "following.html", data)
 	}
-	c.Response().Header().Set("HX-Redirect", "/")
-	users := h.db.GetAllUsers()
-	return c.Render(http.StatusOK, "index.html", ctx{"Register": false, "Users": users})
+	return h.redirectHome(c)
 }
