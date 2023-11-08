@@ -23,20 +23,6 @@ func NewHandlers(db db.DB) Handlers {
 	return Handlers{db}
 }
 
-func checkLoggedIn(id string, idExists bool, db db.DB) (*types.User, bool) {
-	if !idExists {
-		return nil, false
-	}
-
-	validUser, _ := db.FindUser(id)
-
-	if validUser != nil {
-		return validUser, true
-	}
-
-	return nil, false
-}
-
 func getLoginCookie(user *types.User) *http.Cookie {
 	return &http.Cookie{Name: "uuid", Value: user.UUID.String(), HttpOnly: true, MaxAge: 10 * 60}
 }
@@ -53,16 +39,16 @@ func getSleep(reqSleep string) time.Duration {
 }
 
 func (h Handlers) Index(c echo.Context) error {
-	id, ok := c.Get("uuid").(string)
-	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+	loggedInUser, ok := c.Get("user").(*types.User)
 	users := h.db.GetAllUsers()
 
-	if isLoggedIn {
+	if ok {
 		fmt.Println(loggedInUser.Followers)
 		data := ctx{"Users": users, "User": loggedInUser}
 		return c.Render(http.StatusOK, "index.html", data)
 	}
 
+	fmt.Print("Not logged in")
 	data := ctx{"Register": c.Path() != "/login", "Users": users}
 	return c.Render(http.StatusOK, "index.html", data)
 }
@@ -155,10 +141,9 @@ func (h Handlers) Logout(c echo.Context) error {
 }
 
 func (h Handlers) RenderFollowers(c echo.Context) error {
-	id, ok := c.Get("uuid").(string)
-	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+	loggedInUser, ok := c.Get("user").(*types.User)
 
-	if isLoggedIn {
+	if ok {
 		followers := user.GetFollowers(h.db, loggedInUser.Followers)
 		data := ctx{"User": loggedInUser, "Followers": followers}
 
@@ -172,11 +157,9 @@ func (h Handlers) RenderFollowers(c echo.Context) error {
 }
 
 func (h Handlers) RenderFollowing(c echo.Context) error {
-	// TODO: Pass user from auth
-	id, ok := c.Get("uuid").(string)
-	loggedInUser, isLoggedIn := checkLoggedIn(id, ok, h.db)
+	loggedInUser, ok := c.Get("user").(*types.User)
 
-	if isLoggedIn {
+	if ok {
 		following := user.GetFollowing(h.db, loggedInUser.Following)
 		data := ctx{"User": loggedInUser, "Following": following}
 		return c.Render(http.StatusOK, "following.html", data)
