@@ -2,8 +2,6 @@ package db
 
 import (
 	"htmx/types"
-
-	"github.com/google/uuid"
 )
 
 // MockDB is unused, but it's an example of how an interface can be used with multiple implementations in Go
@@ -25,8 +23,8 @@ func (d MockDB) GetAllUsers() []types.User {
 	return result
 }
 
-func (d MockDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	d.users[id.String()] = user{username, hashedPassword, []string{}, []string{}, id.String()}
+func (d MockDB) InsertUser(username, hashedPassword string, id string) string {
+	d.users[id] = user{username, hashedPassword, []string{}, []string{}, id}
 	return id
 }
 
@@ -49,11 +47,11 @@ func (d MockDB) FindUserByName(name string) (*types.User, string) {
 	return nil, ""
 }
 
-func (d MockDB) FollowUser(follower, followee uuid.UUID) {
+func (d MockDB) FollowUser(follower, followee string) {
 	panic("not implemented")
 }
 
-func (d MockDB) IsFollowing(follower, followee uuid.UUID) bool {
+func (d MockDB) IsFollowing(follower, followee string) bool {
 	panic("not implemented")
 }
 

@@ -35,15 +35,15 @@ func TestFollowUser(t *testing.T) {
 	Follow(d, b.UUID, a.UUID)
 	Follow(d, c.UUID, a.UUID)
 
-	alice, _ := d.FindUser(a.UUID.String())
-	bob, _ := d.FindUser(b.UUID.String())
-	carl, _ := d.FindUser(c.UUID.String())
+	alice, _ := d.FindUser(a.UUID)
+	bob, _ := d.FindUser(b.UUID)
+	carl, _ := d.FindUser(c.UUID)
 
-	assert.Equal(t, alice.Following, []string{bob.UUID.String()})
-	assert.Equal(t, alice.Followers, []string{bob.UUID.String(), carl.UUID.String()})
-	assert.Equal(t, bob.Following, []string{alice.UUID.String()})
-	assert.Equal(t, bob.Followers, []string{alice.UUID.String()})
-	assert.Equal(t, carl.Following, []string{alice.UUID.String()})
+	assert.Equal(t, alice.Following, []string{bob.UUID})
+	assert.Equal(t, alice.Followers, []string{bob.UUID, carl.UUID})
+	assert.Equal(t, bob.Following, []string{alice.UUID})
+	assert.Equal(t, bob.Followers, []string{alice.UUID})
+	assert.Equal(t, carl.Following, []string{alice.UUID})
 	assert.Equal(t, carl.Followers, []string{})
 }
 
@@ -53,7 +53,7 @@ func TestFollowSelfFail(t *testing.T) {
 
 	Follow(d, a.UUID, a.UUID)
 
-	alice, _ := d.FindUser(a.UUID.String())
+	alice, _ := d.FindUser(a.UUID)
 
 	assert.Equal(t, alice.Following, []string{})
 	assert.Equal(t, alice.Followers, []string{})
@@ -66,19 +66,19 @@ func TestAlreadyFollowingFail(t *testing.T) {
 
 	Follow(d, a.UUID, b.UUID)
 
-	alice, _ := d.FindUser(a.UUID.String())
-	bill, _ := d.FindUser(b.UUID.String())
+	alice, _ := d.FindUser(a.UUID)
+	bill, _ := d.FindUser(b.UUID)
 
-	assert.Equal(t, alice.Following, []string{b.UUID.String()})
-	assert.Equal(t, bill.Followers, []string{a.UUID.String()})
+	assert.Equal(t, alice.Following, []string{b.UUID})
+	assert.Equal(t, bill.Followers, []string{a.UUID})
 
 	Follow(d, a.UUID, b.UUID)
 
-	alice, _ = d.FindUser(a.UUID.String())
-	bill, _ = d.FindUser(b.UUID.String())
+	alice, _ = d.FindUser(a.UUID)
+	bill, _ = d.FindUser(b.UUID)
 
-	assert.Equal(t, alice.Following, []string{b.UUID.String()})
-	assert.Equal(t, bill.Followers, []string{a.UUID.String()})
+	assert.Equal(t, alice.Following, []string{b.UUID})
+	assert.Equal(t, bill.Followers, []string{a.UUID})
 }
 
 func TestNotFoundPanic(t *testing.T) {

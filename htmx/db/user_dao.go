@@ -4,20 +4,15 @@ import (
 	"errors"
 	"htmx/types"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-memdb"
 )
 
 func toUser(u user) types.User {
-	id, err := uuid.Parse(u.UUID)
-	if err != nil {
-		panic(err)
-	}
-	return types.User{Username: u.Username, UUID: id, Followers: u.Followers, Following: u.Following}
+	return types.User{Username: u.Username, UUID: u.UUID, Followers: u.Followers, Following: u.Following}
 }
 
-func (d MemDB) InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID {
-	u := user{username, hashedPassword, []string{}, []string{}, id.String()}
+func (d MemDB) InsertUser(username, hashedPassword string, id string) string {
+	u := user{username, hashedPassword, []string{}, []string{}, id}
 	txn := d.db.Txn(true)
 	if err := txn.Insert("users", u); err != nil {
 		panic(err)
@@ -98,15 +93,15 @@ func findUser(txn *memdb.Txn, id string) user {
 	return u.(user)
 }
 
-func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
+func (db MemDB) FollowUser(followerId, followeeId string) {
 	txn := db.db.Txn(true)
 	defer txn.Abort()
-	follower := findUser(txn, followerId.String())
-	followee := findUser(txn, followeeId.String())
+	follower := findUser(txn, followerId)
+	followee := findUser(txn, followeeId)
 
 	// TODO: Separate table for followers/following?
-	follower.Following = append(follower.Following, followeeId.String())
-	followee.Followers = append(followee.Followers, followerId.String())
+	follower.Following = append(follower.Following, followeeId)
+	followee.Followers = append(followee.Followers, followerId)
 	if err := txn.Insert("users", follower); err != nil {
 		panic(err)
 	}
@@ -116,19 +111,19 @@ func (db MemDB) FollowUser(followerId, followeeId uuid.UUID) {
 	txn.Commit()
 }
 
-func (db MemDB) IsFollowing(followerId, followeeId uuid.UUID) bool {
+func (db MemDB) IsFollowing(followerId, followeeId string) bool {
 	txn := db.db.Txn(false)
 	defer txn.Abort()
-	follower := findUser(txn, followerId.String())
-	followee := findUser(txn, followeeId.String())
+	follower := findUser(txn, followerId)
+	followee := findUser(txn, followeeId)
 
 	for _, f := range follower.Following {
-		if f == followeeId.String() {
+		if f == followeeId {
 			return true
 		}
 	}
 	for _, f := range followee.Followers {
-		if f == followerId.String() {
+		if f == followerId {
 			return true
 		}
 	}

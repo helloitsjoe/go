@@ -24,7 +24,7 @@ func NewHandlers(db db.DB) Handlers {
 }
 
 func getLoginCookie(user *types.User) *http.Cookie {
-	return &http.Cookie{Name: "uuid", Value: user.UUID.String(), HttpOnly: true, MaxAge: 10 * 60}
+	return &http.Cookie{Name: "uuid", Value: user.UUID, HttpOnly: true, MaxAge: 10 * 60}
 }
 
 func getSleep(reqSleep string) time.Duration {

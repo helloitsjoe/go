@@ -1,7 +1,5 @@
 package types
 
-import "github.com/google/uuid"
-
 // type user struct {
 // 	Username string `form:"username"`
 // 	Password string `form:"password"`
@@ -15,7 +13,7 @@ type User struct {
 	Following []string
 	// LikedPosts []uuid.UUID
 	// Posts      []Post
-	UUID uuid.UUID
+	UUID string
 }
 
 // type Post struct {

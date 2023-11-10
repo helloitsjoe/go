@@ -3,17 +3,16 @@ package db
 import (
 	"htmx/types"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-memdb"
 )
 
 type DB interface {
-	InsertUser(username, hashedPassword string, id uuid.UUID) uuid.UUID
+	InsertUser(username, hashedPassword string, id string) string
 	FindUser(id string) (*types.User, string)
 	FindUserByName(name string) (*types.User, string)
 	GetAllUsers() []types.User
-	FollowUser(follower, followee uuid.UUID)
-	IsFollowing(follower, followee uuid.UUID) bool
+	FollowUser(follower, followee string)
+	IsFollowing(follower, followee string) bool
 	GetFollowers(followers []string) []*types.User
 	GetFollowing(following []string) []*types.User
 }

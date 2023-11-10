@@ -29,7 +29,7 @@ func checkPasswordHash(plaintext, hash string) bool {
 func NewUser(username string) *types.User {
 	u := &types.User{}
 	u.Username = username
-	u.UUID = uuid.New()
+	u.UUID = uuid.New().String()
 	u.Followers = []string{}
 	u.Following = []string{}
 	return u
@@ -106,7 +106,7 @@ func GetUsers(db db.DB) []types.User {
 	return users
 }
 
-func Follow(db db.DB, a, b uuid.UUID) {
+func Follow(db db.DB, a, b string) {
 	if a == b {
 		return
 	}
