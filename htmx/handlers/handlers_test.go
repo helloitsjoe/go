@@ -51,9 +51,9 @@ func login() (*httptest.ResponseRecorder, *echo.Echo, string) {
 func TestGetUsersHtmx(t *testing.T) {
 	rec, _ := makeRequest(http.MethodGet, "/users", "", nil)
 	r := rec.Body.String()
-	assert.Contains(t, r, "Alice")
-	assert.Contains(t, r, "Bob")
-	assert.Contains(t, r, "Carl")
+	assert.Contains(t, r, "alice")
+	assert.Contains(t, r, "bob")
+	assert.Contains(t, r, "carl")
 }
 
 func TestGetUsersJson(t *testing.T) {
@@ -65,9 +65,9 @@ func TestGetUsersJson(t *testing.T) {
 
 	alice, bob, carl := users[0], users[1], users[2]
 
-	assert.Equal(t, alice.Username, "Alice")
-	assert.Equal(t, bob.Username, "Bob")
-	assert.Equal(t, carl.Username, "Carl")
+	assert.Equal(t, alice.Username, "alice")
+	assert.Equal(t, bob.Username, "bob")
+	assert.Equal(t, carl.Username, "carl")
 
 	// Bit annoying way to check that the Ids are unique
 	assert.NotEqual(t, alice.UUID, bob.UUID)
@@ -96,7 +96,7 @@ func TestRegisterUserExistsFail(t *testing.T) {
 	cookie := rec.Header().Get("Set-Cookie")
 	assert.NotContains(t, cookie, `uuid=`)
 
-	assert.NotContains(t, r, "Hello there Alice")
+	assert.NotContains(t, r, "Hello there alice")
 	assert.NotContains(t, r, "Log out")
 }
 
@@ -108,10 +108,10 @@ func TestRegisterUserValid(t *testing.T) {
 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">4</span>")
 	assert.Contains(t, r, `
 <span id="logged-in-as" hx-swap-oob="true">
-  <span>Logged in as NewUser</span>
+  <span>Logged in as newuser</span>
   <button hx-post="/logout" class="text-btn">Log out</button>
 </span>`)
-	assert.Contains(t, r, "Hello there NewUser")
+	assert.Contains(t, r, "Hello there newuser")
 	assert.Contains(t, r, "Log out")
 }
 
@@ -124,12 +124,12 @@ func TestLogin(t *testing.T) {
 	assert.Contains(t, r, "<span id=\"num-users\" hx-swap-oob=\"true\">3</span>")
 	assert.Contains(t, r, `
 <span id="logged-in-as" hx-swap-oob="true">
-  <span>Logged in as Alice</span>
+  <span>Logged in as alice</span>
   <button hx-post="/logout" class="text-btn">Log out</button>
 </span>`)
 	// Clear error on a successful login
 	assert.Contains(t, r, "<div id=\"error\" hx-swap-oob=\"true\"></div>")
-	assert.Contains(t, r, "Hello there Alice")
+	assert.Contains(t, r, "Hello there alice")
 	assert.Contains(t, r, "Log out")
 }
 

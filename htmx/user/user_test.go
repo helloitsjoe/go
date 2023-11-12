@@ -15,9 +15,9 @@ func TestSeedUsers(t *testing.T) {
 
 	alice, bob, carl := users[0], users[1], users[2]
 
-	assert.Equal(t, alice.Username, "Alice")
-	assert.Equal(t, bob.Username, "Bob")
-	assert.Equal(t, carl.Username, "Carl")
+	assert.Equal(t, alice.Username, "alice")
+	assert.Equal(t, bob.Username, "bob")
+	assert.Equal(t, carl.Username, "carl")
 
 	assert.NotEqual(t, alice.UUID, bob.UUID)
 	assert.NotEqual(t, bob.UUID, carl.UUID)
@@ -27,9 +27,9 @@ func TestSeedUsers(t *testing.T) {
 
 func TestFollowUser(t *testing.T) {
 	d := db.CreateDB()
-	a, _ := AddUser(d, "Alice", "bar")
-	b, _ := AddUser(d, "Bob", "bar")
-	c, _ := AddUser(d, "Carl", "bar")
+	a, _ := AddUser(d, "alice", "bar")
+	b, _ := AddUser(d, "bob", "bar")
+	c, _ := AddUser(d, "carl", "bar")
 
 	Follow(d, a.UUID, b.UUID)
 	Follow(d, b.UUID, a.UUID)
@@ -49,7 +49,7 @@ func TestFollowUser(t *testing.T) {
 
 func TestFollowSelfFail(t *testing.T) {
 	d := db.CreateDB()
-	a, _ := AddUser(d, "Alice", "bar")
+	a, _ := AddUser(d, "alice", "bar")
 
 	Follow(d, a.UUID, a.UUID)
 
@@ -61,8 +61,8 @@ func TestFollowSelfFail(t *testing.T) {
 
 func TestAlreadyFollowingFail(t *testing.T) {
 	d := db.CreateDB()
-	a, _ := AddUser(d, "Alice", "bar")
-	b, _ := AddUser(d, "Bill", "bar")
+	a, _ := AddUser(d, "alice", "bar")
+	b, _ := AddUser(d, "bill", "bar")
 
 	Follow(d, a.UUID, b.UUID)
 
@@ -89,8 +89,8 @@ func TestNotFoundPanic(t *testing.T) {
 	}()
 
 	d := db.CreateDB()
-	a, _ := AddUser(d, "Alice", "bar")
-	b := NewUser("Bill") // Not added to DB
+	a, _ := AddUser(d, "alice", "bar")
+	b := NewUser("bill") // Not added to DB
 
 	Follow(d, a.UUID, b.UUID)
 }
@@ -98,7 +98,7 @@ func TestNotFoundPanic(t *testing.T) {
 func TestLoginSuccess(t *testing.T) {
 	d := db.CreateDB()
 	SeedUsers(d)
-	u, err := Login(d, "Alice", "bar")
+	u, err := Login(d, "alice", "bar")
 	assert.IsType(t, u, &types.User{})
 	assert.Nil(t, err)
 }
@@ -114,7 +114,7 @@ func TestLoginNoName(t *testing.T) {
 func TestLoginNoPassword(t *testing.T) {
 	d := db.CreateDB()
 	SeedUsers(d)
-	u, err := Login(d, "Alice", "")
+	u, err := Login(d, "alice", "")
 	assert.Nil(t, u)
 	assert.Equal(t, err.Error(), "Name and password must be provided")
 }
@@ -122,7 +122,7 @@ func TestLoginNoPassword(t *testing.T) {
 func TestLoginMissingUser(t *testing.T) {
 	d := db.CreateDB()
 	SeedUsers(d)
-	u, err := Login(d, "Nobody", "foo")
+	u, err := Login(d, "nobody", "foo")
 	assert.Nil(t, u)
 	assert.Equal(t, err.Error(), "Incorrect login credentials")
 }
@@ -130,7 +130,7 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginIncorrectPassword(t *testing.T) {
 	d := db.CreateDB()
 	SeedUsers(d)
-	u, err := Login(d, "Alice", "dunno")
+	u, err := Login(d, "alice", "dunno")
 	assert.Nil(t, u)
 	assert.Equal(t, err.Error(), "Incorrect login credentials")
 }

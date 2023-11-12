@@ -61,6 +61,7 @@ input {
   display: inline-block;
 }
 
+.user-container,
 .home-container {
   display: flex;
   gap: 1em;
@@ -70,6 +71,8 @@ input {
   /* height: 100vh; */
 }
 
+.books-checked-out,
+.books-available,
 .home-following,
 .home-followers {
   border: 1px solid var(--primary);

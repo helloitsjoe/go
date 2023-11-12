@@ -46,9 +46,9 @@ func TestRenderFollowers(t *testing.T) {
 	r := rec.Body.String()
 
 	assert.Contains(t, r, "Followers")
-	assert.NotContains(t, r, "Alice")
-	assert.Contains(t, r, "Bob")
-	assert.Contains(t, r, "Carl")
+	assert.NotContains(t, r, "alice")
+	assert.Contains(t, r, "bob")
+	assert.Contains(t, r, "carl")
 }
 
 func TestRenderFollowing(t *testing.T) {
@@ -62,7 +62,7 @@ func TestRenderFollowing(t *testing.T) {
 	r := rec.Body.String()
 
 	assert.Contains(t, r, "Following")
-	assert.NotContains(t, r, "Alice")
-	assert.Contains(t, r, "Bob")
-	assert.NotContains(t, r, "Carl")
+	assert.NotContains(t, r, "alice")
+	assert.Contains(t, r, "bob")
+	assert.NotContains(t, r, "carl")
 }

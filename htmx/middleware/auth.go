@@ -11,12 +11,11 @@ import (
 )
 
 func getLoggedInUser(id string, db db.DB) *types.User {
-	// TODO: What if the user is not found?
 	if id == "" {
 		return nil
 	}
 
-	// Length in bytes
+	// Length in bytes, MemDB freaks out if UUID isn't 36 bytes
 	if len(id) != 36 {
 		return nil
 	}

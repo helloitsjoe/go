@@ -1,0 +1,21 @@
+{{ define "user" }}
+<h2>{{ .User.Username }}'s books</h2>
+<div class="user-container">
+  <div class="books-checked-out">
+    <h3>Books checked out</h3>
+    <ul>
+      {{- range .BooksCheckedOut }}
+      <li>{{- . }}</li>
+      {{- end }}
+    </ul>
+  </div>
+  <div class="books-available">
+    <h3>Books available to borrow</h3>
+    <ul>
+      {{- range .BooksAvailable }}
+      <li>{{- . }}</li>
+      {{- end }}
+    </ul>
+  </div>
+</div>
+{{ end }}

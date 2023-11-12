@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -66,7 +67,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 	password := c.Request().FormValue("password")
 
 	users := user.GetUsers(h.db)
-	newUser, err := user.AddUser(h.db, username, password)
+	newUser, err := user.AddUser(h.db, strings.ToLower(username), password)
 
 	if err != nil {
 		if err.Error() == "Bad request" {
@@ -96,7 +97,7 @@ func (h Handlers) Login(c echo.Context) error {
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
-	loggedInUser, err := user.Login(h.db, username, password)
+	loggedInUser, err := user.Login(h.db, strings.ToLower(username), password)
 	if err != nil {
 		if err.Error() == "Bad request" {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -166,4 +167,26 @@ func (h Handlers) RenderFollowing(c echo.Context) error {
 		return c.Render(http.StatusOK, "following.html", data)
 	}
 	return h.redirectHome(c)
+}
+
+func (h Handlers) User(c echo.Context) error {
+	// loggedInUser, ok := c.Get("user").(*types.User)
+
+	user := c.Param("user")
+	if user == "" {
+		return h.redirectHome(c)
+	}
+	fmt.Println("user", user)
+
+	u, _ := h.db.FindUserByName(user)
+
+	booksCheckedOut := []string{"The Hobbit"}
+	booksAvailable := []string{"Dune"}
+
+	allUsers := h.db.GetAllUsers()
+	// if ok {
+	data := ctx{"User": u, "BooksCheckedOut": booksCheckedOut, "BooksAvailable": booksAvailable, "Users": allUsers}
+	return c.Render(http.StatusOK, "user.html", data)
+	// }
+	// return h.redirectHome(c)
 }

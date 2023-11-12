@@ -40,7 +40,7 @@ func SeedUsers(d db.DB) {
 	newUsers := []*types.User{}
 
 	for _, name := range u {
-		n := NewUser(name)
+		n := NewUser(strings.ToLower(name))
 		p := hashPassword("bar")
 		newUsers = append(newUsers, n)
 		d.InsertUser(n.Username, p, n.UUID)
