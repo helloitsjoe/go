@@ -169,8 +169,12 @@ func (h Handlers) RenderFollowing(c echo.Context) error {
 	return h.redirectHome(c)
 }
 
-func (h Handlers) User(c echo.Context) error {
-	// loggedInUser, ok := c.Get("user").(*types.User)
+func (h Handlers) RenderUser(c echo.Context) error {
+	loggedInUser := c.Get("user")
+
+	if loggedInUser != nil {
+		loggedInUser = loggedInUser.(*types.User)
+	}
 
 	user := c.Param("user")
 	if user == "" {
@@ -184,9 +188,7 @@ func (h Handlers) User(c echo.Context) error {
 	booksAvailable := []string{"Dune"}
 
 	allUsers := h.db.GetAllUsers()
-	// if ok {
-	data := ctx{"User": u, "BooksCheckedOut": booksCheckedOut, "BooksAvailable": booksAvailable, "Users": allUsers}
+
+	data := ctx{"User": loggedInUser, "TargetUser": u, "BooksCheckedOut": booksCheckedOut, "BooksAvailable": booksAvailable, "Users": allUsers}
 	return c.Render(http.StatusOK, "user.html", data)
-	// }
-	// return h.redirectHome(c)
 }
