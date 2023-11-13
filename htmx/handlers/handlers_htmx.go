@@ -49,8 +49,10 @@ func (h Handlers) Index(c echo.Context) error {
 	loggedInUser, ok := c.Get("user").(*types.User)
 	users := h.db.GetAllUsers()
 
+	// TODO: Why isn't this rendering "Logged in as" when following Home/About links?
+	// Might need to submit an issue
 	if ok {
-		fmt.Println(loggedInUser.Followers)
+		fmt.Println("followers", loggedInUser.Followers)
 		data := ctx{"Users": users, "User": loggedInUser}
 		return c.Render(http.StatusOK, "index.html", data)
 	}
@@ -136,7 +138,13 @@ func (h Handlers) AllUsers(c echo.Context) error {
 }
 
 func (h Handlers) About(c echo.Context) error {
+	loggedInUser, ok := c.Get("user").(*types.User)
 	users := h.db.GetAllUsers()
+
+	if ok {
+		return c.Render(http.StatusOK, "about.html", ctx{"Users": users, "User": loggedInUser})
+	}
+
 	return c.Render(http.StatusOK, "about.html", ctx{"Users": users})
 }
 
@@ -176,7 +184,7 @@ func (h Handlers) RenderUser(c echo.Context) error {
 		loggedInUser = loggedInUser.(*types.User)
 	}
 
-	user := c.Param("user")
+	user := c.Param("username")
 	if user == "" {
 		return h.redirectHome(c)
 	}
@@ -189,6 +197,10 @@ func (h Handlers) RenderUser(c echo.Context) error {
 
 	allUsers := h.db.GetAllUsers()
 
+	fmt.Println("loggedInUser", loggedInUser)
+
 	data := ctx{"User": loggedInUser, "TargetUser": u, "BooksCheckedOut": booksCheckedOut, "BooksAvailable": booksAvailable, "Users": allUsers}
 	return c.Render(http.StatusOK, "user.html", data)
 }
+
+// TODO: Borrow, return

@@ -39,7 +39,7 @@ func Auth(next echo.HandlerFunc, db db.DB) echo.HandlerFunc {
 		if uuid != nil {
 			user := getLoggedInUser(uuid.Value, db)
 			if user != nil {
-				fmt.Println("Logged in user")
+				fmt.Println("Logged in user", user)
 				c.Set("user", user)
 			} else {
 				fmt.Println("Not a logged in user")

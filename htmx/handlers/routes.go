@@ -15,10 +15,10 @@ func Register(e *echo.Echo, d db.DB) {
 	e.GET("/login", middleware.Auth(h.Index, d))
 	e.GET("/followers", middleware.Auth(h.RenderFollowers, d))
 	e.GET("/following", middleware.Auth(h.RenderFollowing, d))
-	e.GET("/about", h.About)
+	e.GET("/user/:username", middleware.Auth(h.RenderUser, d))
+	e.GET("/about", middleware.Auth(h.About, d))
 	e.POST("/logout", h.Logout)
 	e.GET("/users", h.AllUsers)
-	e.GET("/:user", h.RenderUser)
 	e.POST("/register", h.RegisterUser)
 	e.POST("/login", h.Login)
 }

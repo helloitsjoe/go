@@ -18,6 +18,14 @@ func TestRenderIndex(t *testing.T) {
 	assert.Contains(t, r, "form hx-post=\"/register\" hx-swap=\"outerHTML\"")
 }
 
+// func TestRender404(t *testing.T) {
+// 	rec, _ := makeRequest(http.MethodGet, "/nope", "", nil)
+// 	r := rec.Body.String()
+// 	assert.Contains(t, r, "html")
+// 	assert.Contains(t, r, "nav")
+// 	assert.Contains(t, r, "404")
+// }
+
 func TestRenderRegister(t *testing.T) {
 	rec, _ := makeRequest(http.MethodGet, "/register", "", nil)
 	r := rec.Body.String()
@@ -65,4 +73,20 @@ func TestRenderFollowing(t *testing.T) {
 	assert.NotContains(t, r, "alice")
 	assert.Contains(t, r, "bob")
 	assert.NotContains(t, r, "carl")
+}
+
+func TestRenderUser(t *testing.T) {
+	_, e, loginCookie := login()
+	req := httptest.NewRequest(http.MethodGet, "/user/bob", strings.NewReader(""))
+	req.Header.Set("Cookie", loginCookie)
+
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	r := rec.Body.String()
+
+	assert.Contains(t, r, "bob's books")
+	assert.Contains(t, r, "checked out")
+	assert.Contains(t, r, "available")
+	assert.Contains(t, r, "Logged in as alice")
 }

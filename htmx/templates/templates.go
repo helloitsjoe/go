@@ -15,8 +15,8 @@ type Template struct {
 func (t *Template) getExtraTemplates(name string) []string {
 	var tmps = map[string][]string{
 		"about.html": {t.RootDir + "templates/about.html"},
-		"index.html": {t.RootDir + "templates/index.html"},
 		"user.html":  {t.RootDir + "templates/user.html"},
+		"index.html": {t.RootDir + "templates/index.html"},
 	}
 	return tmps[name]
 }
