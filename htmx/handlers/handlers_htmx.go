@@ -49,8 +49,6 @@ func (h Handlers) Index(c echo.Context) error {
 	loggedInUser, ok := c.Get("user").(*types.User)
 	users := h.db.GetAllUsers()
 
-	// TODO: Why isn't this rendering "Logged in as" when following Home/About links?
-	// Might need to submit an issue
 	if ok {
 		fmt.Println("followers", loggedInUser.Followers)
 		data := ctx{"Users": users, "User": loggedInUser}
