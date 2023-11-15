@@ -3,7 +3,7 @@
   <h3 class="center">Following</h3>
   <ul>
     {{ range .Following }}
-    <li><a href="/{{ .Username }}">{{- .Username }}</a></li>
+    <li><a href="/user/{{ .Username }}">{{- .Username }}</a></li>
     {{ end }}
   </ul>
 </div>

@@ -169,3 +169,9 @@ func TestLogout(t *testing.T) {
 	assert.NotContains(t, r, "Hello there")
 	assert.NotContains(t, r, "Log out")
 }
+
+// func TestUser() {
+// 	rec, _ := makeRequest(echo.POST, "/logout", "", nil)
+// 	r := rec.Body.String()
+// 	assert.Contains(t, rec.Header().Get("Set-Cookie"), "uuid=; Max-Age=0; HttpOnly")
+// }

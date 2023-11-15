@@ -57,6 +57,8 @@ func TestRenderFollowers(t *testing.T) {
 	assert.NotContains(t, r, "alice")
 	assert.Contains(t, r, "bob")
 	assert.Contains(t, r, "carl")
+	assert.Contains(t, r, `href="/user/bob"`)
+	assert.Contains(t, r, `href="/user/carl"`)
 }
 
 func TestRenderFollowing(t *testing.T) {
@@ -72,6 +74,7 @@ func TestRenderFollowing(t *testing.T) {
 	assert.Contains(t, r, "Following")
 	assert.NotContains(t, r, "alice")
 	assert.Contains(t, r, "bob")
+	assert.Contains(t, r, `href="/user/bob"`)
 	assert.NotContains(t, r, "carl")
 }
 
