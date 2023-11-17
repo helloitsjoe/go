@@ -116,6 +116,17 @@ func Follow(db db.DB, a, b string) {
 	db.FollowUser(a, b)
 }
 
+func Unfollow(db db.DB, a, b string) {
+	if a == b {
+		return
+	}
+	if !db.IsFollowing(a, b) {
+		return
+	}
+	fmt.Println("Unfollowing", a, b)
+	db.UnfollowUser(a, b)
+}
+
 func GetFollowers(db db.DB, followers []string) []*types.User {
 	return db.GetFollowers(followers)
 }

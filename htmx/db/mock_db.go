@@ -51,6 +51,10 @@ func (d MockDB) FollowUser(follower, followee string) {
 	panic("not implemented")
 }
 
+func (d MockDB) UnfollowUser(follower, followee string) {
+	panic("not implemented")
+}
+
 func (d MockDB) IsFollowing(follower, followee string) bool {
 	panic("not implemented")
 }

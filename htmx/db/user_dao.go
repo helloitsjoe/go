@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"htmx/types"
 
 	"github.com/hashicorp/go-memdb"
@@ -106,6 +107,43 @@ func (db MemDB) FollowUser(followerId, followeeId string) {
 		panic(err)
 	}
 	if err := txn.Insert("users", followee); err != nil {
+		panic(err)
+	}
+	txn.Commit()
+}
+
+func (db MemDB) UnfollowUser(followerId, unfollowId string) {
+	txn := db.db.Txn(true)
+	defer txn.Abort()
+	follower := findUser(txn, followerId)
+	unfollowee := findUser(txn, unfollowId)
+
+	fmt.Println("follower", follower.Following)
+	fmt.Println("unfollowee", unfollowee.Followers)
+
+	filteredFollowing := []string{}
+	for _, id := range follower.Following {
+		if id != unfollowId {
+			filteredFollowing = append(filteredFollowing, id)
+		}
+	}
+	follower.Following = filteredFollowing
+
+	filteredFollowers := []string{}
+	for _, id := range unfollowee.Followers {
+		if id != followerId {
+			filteredFollowers = append(filteredFollowers, id)
+		}
+	}
+	unfollowee.Followers = filteredFollowers
+
+	fmt.Println("follower AFTER", follower.Username, follower.Following)
+	fmt.Println("unfollowee AFTER", unfollowee.Username, unfollowee.Followers)
+
+	if err := txn.Insert("users", follower); err != nil {
+		panic(err)
+	}
+	if err := txn.Insert("users", unfollowee); err != nil {
 		panic(err)
 	}
 	txn.Commit()

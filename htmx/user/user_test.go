@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"htmx/db"
 	"htmx/types"
 	"testing"
@@ -45,6 +46,40 @@ func TestFollowUser(t *testing.T) {
 	assert.Equal(t, bob.Followers, []string{alice.UUID})
 	assert.Equal(t, carl.Following, []string{alice.UUID})
 	assert.Equal(t, carl.Followers, []string{})
+}
+
+func TestUnfollowUser(t *testing.T) {
+	d := db.CreateDB()
+	a, _ := AddUser(d, "alice", "bar")
+	b, _ := AddUser(d, "bob", "bar")
+	c, _ := AddUser(d, "carl", "bar")
+
+	Follow(d, a.UUID, b.UUID)
+	Follow(d, b.UUID, a.UUID)
+	Follow(d, c.UUID, a.UUID)
+
+	alice, _ := d.FindUser(a.UUID)
+	bob, _ := d.FindUser(b.UUID)
+	carl, _ := d.FindUser(c.UUID)
+
+	assert.Equal(t, alice.Following, []string{bob.UUID})
+	assert.Equal(t, alice.Followers, []string{bob.UUID, carl.UUID})
+	assert.Equal(t, bob.Following, []string{alice.UUID})
+	assert.Equal(t, bob.Followers, []string{alice.UUID})
+	assert.Equal(t, carl.Following, []string{alice.UUID})
+	assert.Equal(t, carl.Followers, []string{})
+
+	fmt.Println("Alice", a.UUID)
+	Unfollow(d, b.UUID, a.UUID)
+	Unfollow(d, c.UUID, a.UUID)
+
+	alice, _ = d.FindUser(a.UUID)
+	bob, _ = d.FindUser(b.UUID)
+	carl, _ = d.FindUser(c.UUID)
+
+	assert.Equal(t, []string{}, alice.Followers)
+	assert.Equal(t, []string{}, bob.Following)
+	assert.Equal(t, []string{}, carl.Following)
 }
 
 func TestFollowSelfFail(t *testing.T) {
@@ -130,7 +165,7 @@ func TestLoginMissingUser(t *testing.T) {
 func TestLoginIncorrectPassword(t *testing.T) {
 	d := db.CreateDB()
 	SeedUsers(d)
-	u, err := Login(d, "alice", "dunno")
+	u, err := Login(d, "Alice", "dunno")
 	assert.Nil(t, u)
 	assert.Equal(t, err.Error(), "Incorrect login credentials")
 }

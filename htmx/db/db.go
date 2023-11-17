@@ -12,6 +12,7 @@ type DB interface {
 	FindUserByName(name string) (*types.User, string)
 	GetAllUsers() []types.User
 	FollowUser(follower, followee string)
+	UnfollowUser(follower, followee string)
 	IsFollowing(follower, followee string) bool
 	GetFollowers(followers []string) []*types.User
 	GetFollowing(following []string) []*types.User

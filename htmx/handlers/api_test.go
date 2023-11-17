@@ -78,6 +78,7 @@ func TestRenderFollowing(t *testing.T) {
 	assert.NotContains(t, r, "carl")
 }
 
+// TODO: Test button: follow if not following, unfollow otherwise
 func TestRenderUser(t *testing.T) {
 	_, e, loginCookie := login()
 	req := httptest.NewRequest(http.MethodGet, "/user/bob", strings.NewReader(""))
