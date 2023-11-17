@@ -201,4 +201,19 @@ func (h Handlers) RenderUser(c echo.Context) error {
 	return c.Render(http.StatusOK, "user.html", data)
 }
 
+func (h Handlers) Follow(c echo.Context) error {
+	loggedInUser, ok := c.Get("user").(*types.User)
+	if !ok {
+		// TODO: if loggedInUser == nil
+		fmt.Println("No user!")
+	}
+
+	targetId := c.Param("uuid")
+
+	user.Follow(h.db, loggedInUser.UUID, targetId)
+
+	// TODO: Toggle "Unfollowing"
+	return c.HTML(http.StatusOK, "<button>Following</button>")
+}
+
 // TODO: Borrow, return

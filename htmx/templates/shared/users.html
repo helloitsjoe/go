@@ -1,7 +1,7 @@
 <ul>
   {{ range $i, $u := . }}
   <li>
-    {{ $u.Username }}
+    <a href="/user/{{ $u.Username }}">{{ $u.Username }}</a>
   </li>
   {{ end }}
 </ul>

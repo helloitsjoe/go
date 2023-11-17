@@ -20,5 +20,6 @@ func Register(e *echo.Echo, d db.DB) {
 	e.POST("/logout", h.Logout)
 	e.GET("/users", h.AllUsers)
 	e.POST("/register", h.RegisterUser)
+	e.POST("/follow/:uuid", middleware.Auth(h.Follow, d))
 	e.POST("/login", h.Login)
 }

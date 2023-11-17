@@ -1,5 +1,18 @@
 {{ define "user" }}
 <h2>{{ .TargetUser.Username }}'s books</h2>
+{{ if .User }}
+  {{ $followingTarget := 0 }}
+  {{ range .User.Following }}
+    {{ if eq . $.TargetUser.UUID }}{{ $followingTarget = 1 }}{{ end }}
+  {{ end }}
+  {{ if $followingTarget }}
+    <button>You are following {{ .TargetUser.Username }}</button>
+  {{ else }}
+    <button hx-post="/follow/{{ .TargetUser.UUID }}" hx-swap="outerHTML">
+      Follow {{ .TargetUser.Username }}
+    </button>
+  {{ end }}
+{{ end }}
 <div class="user-container">
   <div class="books-checked-out">
     <h3>Books checked out</h3>
