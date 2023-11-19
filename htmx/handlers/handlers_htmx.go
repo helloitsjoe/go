@@ -33,10 +33,10 @@ func getSleep(reqSleep string) time.Duration {
 	if reqSleep, err := strconv.Atoi(reqSleep); err == nil {
 		sleep = reqSleep
 	} else {
-		fmt.Println("Error parsing sleep-seconds:", err)
-		fmt.Println("Continuing, sleeping for", sleep, "seconds")
+		fmt.Println("Error parsing sleep-ms:", err)
+		fmt.Println("Continuing, sleeping for", sleep, "ms")
 	}
-	return time.Duration(sleep)
+	return time.Duration(sleep) * time.Millisecond
 }
 
 func (h Handlers) redirectHome(c echo.Context) error {
@@ -62,7 +62,7 @@ func (h Handlers) Index(c echo.Context) error {
 
 func (h Handlers) RegisterUser(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
-	time.Sleep(sleep * time.Second)
+	time.Sleep(sleep)
 	username := c.Request().FormValue("username")
 	password := c.Request().FormValue("password")
 
@@ -91,7 +91,7 @@ func (h Handlers) RegisterUser(c echo.Context) error {
 
 func (h Handlers) Login(c echo.Context) error {
 	sleep := getSleep(c.Request().FormValue("sleep"))
-	time.Sleep(sleep * time.Second)
+	time.Sleep(sleep)
 	fmt.Println("Body", c.Request().Body)
 	fmt.Println("Password", c.Request().FormValue("password"))
 	username := c.Request().FormValue("username")
@@ -212,8 +212,21 @@ func (h Handlers) Follow(c echo.Context) error {
 
 	user.Follow(h.db, loggedInUser.UUID, targetId)
 
-	// TODO: Toggle "Unfollowing"
-	return c.HTML(http.StatusOK, "<button>Following</button>")
+	return c.HTML(http.StatusOK, fmt.Sprintf(`<button hx-post="/unfollow/%s" hx-swap="outerHTML">Unfollow</button>`, targetId))
+}
+
+func (h Handlers) Unfollow(c echo.Context) error {
+	loggedInUser, ok := c.Get("user").(*types.User)
+	if !ok {
+		// TODO: if loggedInUser == nil
+		fmt.Println("No user!")
+	}
+
+	targetId := c.Param("uuid")
+
+	user.Unfollow(h.db, loggedInUser.UUID, targetId)
+
+	return c.HTML(http.StatusOK, fmt.Sprintf(`<button hx-post="/follow/%s" hx-swap="outerHTML">Follow</button>`, targetId))
 }
 
 // TODO: Borrow, return

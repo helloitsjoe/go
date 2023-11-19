@@ -6,7 +6,9 @@
     {{ if eq . $.TargetUser.UUID }}{{ $followingTarget = 1 }}{{ end }}
   {{ end }}
   {{ if $followingTarget }}
-    <button>You are following {{ .TargetUser.Username }}</button>
+    <button hx-post="/unfollow/{{ .TargetUser.UUID }}" hx-swap="outerHTML">
+      Unfollow {{ .TargetUser.Username }}
+    </button>
   {{ else }}
     <button hx-post="/follow/{{ .TargetUser.UUID }}" hx-swap="outerHTML">
       Follow {{ .TargetUser.Username }}

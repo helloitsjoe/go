@@ -2,7 +2,6 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"htmx/types"
 
 	"github.com/hashicorp/go-memdb"
@@ -118,9 +117,6 @@ func (db MemDB) UnfollowUser(followerId, unfollowId string) {
 	follower := findUser(txn, followerId)
 	unfollowee := findUser(txn, unfollowId)
 
-	fmt.Println("follower", follower.Following)
-	fmt.Println("unfollowee", unfollowee.Followers)
-
 	filteredFollowing := []string{}
 	for _, id := range follower.Following {
 		if id != unfollowId {
@@ -136,9 +132,6 @@ func (db MemDB) UnfollowUser(followerId, unfollowId string) {
 		}
 	}
 	unfollowee.Followers = filteredFollowers
-
-	fmt.Println("follower AFTER", follower.Username, follower.Following)
-	fmt.Println("unfollowee AFTER", unfollowee.Username, unfollowee.Followers)
 
 	if err := txn.Insert("users", follower); err != nil {
 		panic(err)
@@ -185,5 +178,3 @@ func (db MemDB) GetFollowing(followingIds []string) []*types.User {
 	}
 	return f
 }
-
-// TODO: Unfollow user
